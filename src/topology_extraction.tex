@@ -1,0 +1,26 @@
+\chapter{Extraction of Topological Information from Binary Masks}
+
+In order to correctly create features of high fidelity environments such as roads, rivers and biomes, it is essential to extract the necessary information from segmentation image. In this chapter, we present the key concepts behind topology information in binary masks and introduce our proposed solutions.
+
+\section{Problem Formulation}
+
+\section{Preliminaries}
+
+\section{Binary Mask Skeletonization}
+
+Thinning of a binary mask, referred to as skeletonization, is a process of deleting outline pixels of a connected component while maintaining their basic structure, general shape and connectivity. For algorithms used to create binary mask skeleton used for this application, we need to ensure satisfaction of certain criteria:
+\begin{itemize}
+	\item The resulting line should be 1 pixel wide with no redundant pixels
+	\item Connectivity of individual components must be preserved
+	\item The skeleton should be approximately centered with respect to the local thickness of the component.
+	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground object is touching the side.
+\end{itemize}
+
+Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm and Zhang-Suen algorithm. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1 pixel width without some additional post-processing. A different algorithm was selected, which is sequential and guarantees skeleton with no redundant pixels and 1 pixel width. 
+
+%% todo IMAGE GUO-HALL X ZHANG-SUEN X JAIN-KUMAR
+
+This algorithm works by performing slices in all four directions and sequentially removes redundant pixels until only the skeleton remains. This results in the skeleton being offset by 1 pixel from center, but this error is insignificant and does not negatively affect the final result. 
+
+Additional advantage to its 1 pixel width, is that if foreground object of binary mask is touching side of the image, the algorithm will not crate substantial gap between first point of the skeleton and side of the image. For example Zhang-Suen algorithm does not have this feature and it can result in not realistic rivers or roads.
+
