@@ -1,26 +1,75 @@
 \chapter{Extraction of Topological Information from Binary Masks}
 
-In order to correctly create features of high fidelity environments such as roads, rivers and biomes, it is essential to extract the necessary information from segmentation image. In this chapter, we present the key concepts behind topology information in binary masks and introduce our proposed solutions.
+In order to correctly create features of high fidelity environments such as roads, rivers and biomes, it is essential to extract the necessary information from a segmentation image. In this chapter, we present the key concepts related to topological information in binary masks and introduce our proposed solutions.
 
 \section{Problem Formulation}
 
 \section{Preliminaries}
 
+\section{Binary Mask Creation}
+
+A binary mask is created by selecting a specified color and marking the corresponding pixels as white, referred to as foreground, and everything else as black pixels, referred to as background. To improve robustness we can introduce color threshold specifying how much can pixel color vary from the specified color so it is still marked as foreground.
+
+% todo obrázek segmentace -> masky -> smoothnuté masky
+
+\section{Euclidean Distance Transform}
+
+Euclidean distance transform, referred to as EDT, of binary image assigns to each pixel the Euclidean distance to the nearest specified pixel. This can be used for transforming widths and distances from image to real-world units. 
+
+% todo vysvětlení nebo se odkázat na paper
+
+In our application, this algorithm is used to extract the widths of roads or rivers from the segmentation image and convert them to approximate real-world widths. Another use case is the construction of a signed distance field, or SDF.
+
+An SDF is a field in which the value corresponding to each pixel represents the distance from that pixel to the nearest edge of a foreground region. The value is negative if the pixel belongs to the background and positive if it belongs to the foreground.
+
+% todo obrázek binarymask -> hodnoty
+
+\section{Binary Mask Smoothing}
+
+Skeletonization algorithms, described below, are sensitive to binary mask "corners". This behavior is most visible by performing skeletonization of wider foreground regions. To minimize this behavior we smooth the edges of binary mask. 
+
+Binary mask smoothing is achieved by using Gaussian blur on computed signed distance field, then converting pixels of specified value to foreground pixels and the rest as background pixels. If the algorithm is used for smoothing thinner foreground regions it can result in disrupting their continuity. 
+
+% todo obrázek corners -> skeleton && smooth corners -> skeleton (part of husinec segmentation?)
+
+User can modify Gaussian blur parameter, $\sigma$, to increase or decrease the blur strength, or value threshold to modify what smoothed SDF values will be considered as foreground pixels. If the threshold is lower than zero, pixels will be added to the mask, and if its greater than zero, the pixels will erode.
+
+% todo obrázek -> smooth -> grown -> eroded
+
 \section{Binary Mask Skeletonization}
 
-Thinning of a binary mask, referred to as skeletonization, is a process of deleting outline pixels of a connected component while maintaining their basic structure, general shape and connectivity. For algorithms used to create binary mask skeleton used for this application, we need to ensure satisfaction of certain criteria:
+Thinning of a binary mask, referred to as skeletonization, is a process of removing boundary pixels of a foreground region while maintaining their basic structure, general shape and connectivity. For algorithms used to create binary mask skeleton used for this application, we need to ensure satisfaction of certain criteria:
 \begin{itemize}
 	\item The resulting line should be 1 pixel wide with no redundant pixels
 	\item Connectivity of individual components must be preserved
 	\item The skeleton should be approximately centered with respect to the local thickness of the component.
-	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground object is touching the side.
+	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground region is touching the side.
 \end{itemize}
 
-Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm and Zhang-Suen algorithm. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1 pixel width without some additional post-processing. A different algorithm was selected, which is sequential and guarantees skeleton with no redundant pixels and 1 pixel width. 
+Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm and Zhang-Suen algorithm. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. 
 
-%% todo IMAGE GUO-HALL X ZHANG-SUEN X JAIN-KUMAR
+% todo IMAGE GUO-HALL X ZHANG-SUEN X JAIN-KUMAR
 
-This algorithm works by performing slices in all four directions and sequentially removes redundant pixels until only the skeleton remains. This results in the skeleton being offset by 1 pixel from center, but this error is insignificant and does not negatively affect the final result. 
+This algorithm works by performing passes in all four directions and sequentially removes redundant pixels until only the skeleton remains. This results in the skeleton being offset by 1 pixel from center, but this error is insignificant and does not negatively affect the final result. 
 
-Additional advantage to its 1 pixel width, is that if foreground object of binary mask is touching side of the image, the algorithm will not crate substantial gap between first point of the skeleton and side of the image. For example Zhang-Suen algorithm does not have this feature and it can result in not realistic rivers or roads.
+Additional advantage to its 1-pixel width, is that if foreground region of binary mask is touching image boundary, the algorithm will not create substantial gap between first point of the skeleton and side of the image. For example Zhang-Suen algorithm does not have this feature and it can result in unrealistic rivers or roads.
+
+% todo obrázek s edge skeletonem
+
+% todo pseudo kód?
+
+\section{Binary Mask Contours}
+
+Extracting contours of binary mask foreground region is used for creating features that fill area, such as biomes or lakes. 
+
+Used algorithm cycles through every pixel of binary mask. If the pixel is black, that means in background, we skip it. If the pixel is white, in foreground, we count how many 4-neighbors are black and if there are any, we mark this pixel as contour. Pixels that are 4-neighbors are the pixels directly above, below, left or right of the initial pixel.
+
+This algorithm skips foreground pixels along the edges of binary mask, as there are no background pixels. To create edge contour we count pixels that are outside the binary mask bounds as background.
+
+% todo obrázek s validní contůrou
+
+This algorithm, although simple, reliably detects contours. There are a few scenarios where strictly 1-pixel width of the contours is not ensured. These scenarios are hard to resolve by algorithm as their outcome can rapidly change the shape or size of the contours. We decided to leave the resolution of these situations to user by giving them tools for manual edit.
+
+% todo obrázek s nevalidní contůrou
+
 
