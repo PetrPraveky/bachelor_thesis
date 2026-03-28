@@ -1,57 +1,135 @@
 \chapter{Curve Representation of Extracted Topology}
 
+% Caption setup for algorithm 
+\captionsetup[algorithm]{
+	labelfont=bf,
+	justification=raggedright,
+	singlelinecheck=false
+}
+
 %% ???
-Curve representation of extracted topology is done in three main steps. First we convert pixels of the topology to polylines, then we reduce redundant pixels and then we convert polylines to curves.
+Curve representation of the extracted topology is performed in three main steps. First, the topology pixels are converted into polylines. Next, redundant points are removed. Finally, the resulting polylines are converted into curves.
 
 \section{Problem Formulation}
 
-
-
 \section{Preliminaries}
 
-\section{Endpoint and Junction Pixels Detection}
+\section{Endpoint and Junction Pixel Detection}
 
-One of the important parts of creating polylines from topological information is detecting which pixel is endpoint and which is junction. We use simple detection by counting how many 8-neighbor pixels of the initial pixels are foreground, or white. 
+One of the key steps in creating polylines from topological information is determining whether a pixel is an endpoint or a junction. We use a simple classification method based on counting the number of foreground pixels in the 8-neighborhood of the examined pixel.
 
-If the resulting amount is one, then we know the initial pixel is endpoint, has only one neighbor. If there are two foreground pixels, then the initial one is normal pixel connecting two other. 
+If the number of foreground neighbors is one, the pixel is classified as an endpoint, since it is connected to only one neighboring pixel. If the number is two, the pixel is considered a regular polyline pixel connecting two neighboring pixels.
 
 % todo obrazek endpointu, normální, junction, a abomination jako plateau or other.
 
-Junction has three or more foreground pixels, but generally only three. If there are four or more, it could for example mean there is a plateau or other shape that could potentially make polyline extraction difficult.
+A junction pixel has three or more foreground neighbors, although in typical cases it has exactly three. If four or more foreground neighbors are present, this may indicate a more complex local structure, such as a plateau or another shape that can complicate polyline extraction.
 
 \section{Polyline Creation Algorithm}
 
-Polyline creation algorithm uses topological information such as binary mask skeleton or contour to create continuous polyline containing all pixels present in the topology. This algorithm uses information about endpoint and junction pixels, and works by going through three steps in order.
+The polyline creation algorithm uses topological information, such as a binary mask skeleton or contour, to construct a continuous polyline that covers all pixels present in the topology. The algorithm relies on the previously detected endpoint and junction pixels and proceeds in three main steps.
 
 \subsection{Polyline from Endpoint to Junction or Endpoint}
 
-First set is to create polyline from endpoint to junction or another endpoint. We keep track of visited pixels and all endpoints and junction. We start by adding starting endpoint to our polyline and marking it as visited. Then we search for foreground pixels in 8-neighbor pixels. 
+The first step is to create polylines starting at an endpoint and ending either at a junction or at another endpoint. During the process, we keep track of visited pixels as well as all detected endpoints and junctions. The algorithm starts by adding the initial endpoint to the polyline and marking it as visited. It then searches for foreground pixels in its 8-neighborhood. 
 
-If foreground pixel is found, if it is already visited, we skip it. Then we check if it is another endpoint, junction or neither. If the pixel is endpoint, we mark it as visited, add it to our polyline and return the resulting polyline. Similarly if it is junction, we add it to our polyline and return the resutl, but we do not mark it as visited. Lastly, if the pixel is neither, we add it to our polyline, mark it as visited and search for foreground pixels around it and we repeat this step.
+If a foreground neighbor is found and it has already been visited, it is skipped. Otherwise, the algorithm determines whether the pixel is an endpoint, a junction, or a regular pixel and performs one of the following three actions:
 
-To increase accuracy and continuity of resulting polyline, we can chose junction or endpoint pixel depending on which is closer to the initial one. We used Manhattan distance for its low computing cost. If selection algorithm is not used, it can result in discontinuous polyline or small redundant segments.
+\begin{itemize}
+	\item If the pixel is an endpoint, it is marked as visited, added to the polyline, and the resulting polyline is returned.
+	\item If the pixel is a junction, it is added to the polyline and the polyline is returned, but the junction pixel itself is not marked as visited.
+	\item If the pixel is neither an endpoint nor a junction, it is added to the polyline, marked as visited, and the search continues from that pixel.
+\end{itemize}
+
+To improve the accuracy and continuity of the resulting polyline, the endpoint or junction neighbor is prioritized over other foreground pixels, algorithm chooses the closed endpoint or junction neighbor. In our implementation, Manhattan distance was used because of its low computational cost. Without this selection step, the resulting polyline may become discontinuous or may contain short redundant segments.
 
 % todo obrázek bez a s seleckcí, jak vypadá pak polyline
 
-\begin{algorithm}[H]
-	\caption{Polyline from Endpoint to Junction or Endpoint algorithm}
-	\begin{algorithmic}[1]
-		\Procedure{Endpoint\_to\_endpoint}{$\textit{starting\_endpoint},\textit{visited}$}
+{
+\captionof{algorithm}{Polyline from Endpoint to Junction or Endpoint algorithm}
+\begin{algorithmic}[1]
+	\Procedure{Endpoint\_to\_junction\_or\_endpoint}{$\textit{starting\_endpoint},\textit{visited}$}
+	\State $\textit{queue} \gets \text{initialize queue}$
+	\State $\textit{polyline} \gets \text{initialize empty polyline}$
+	\State
+	\State $\textit{queue}\text{.add(}\textit{starting\_endpoint}\text{)}$
+	\While{$\textit{queue}$ is not empty}
+		\State $\textit{point} \gets \textit{queue}\text{.pop()}$ 
+		\State
+		\State $\textit{visited}\text{[}\textit{ point }\text{]} = \text{true}$
+		\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
+		\State
+		\State $\textit{best\_endpoint\_or\_junction}\gets\textbf{ select from neighbors of }\textit{point}$
+		\If{$\textit{best\_endpoint\_or\_junction}\text{ exists}$}
+			\State $\textit{polyline}\text{.add(}\textit{best\_endpoint\_or\_junction}\text{)}$
+			\State
+			\Return $\textit{polyline}$
+		\EndIf
+		\State
+		\For {$\textit{neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$}
+			\If{$\textit{neighbor}\text{ is foreground} \textbf{ and } \text{not }\textit{visited}\text{[}\textit{ neighbor }\text{]}$}
+				\State $\textit{queue}\text{.add(}\textit{neighbor}\text{)}$
+				\State $\textbf{break}$
+			\EndIf
+		\EndFor
+	\EndWhile
+	
+	\State
+	\State
+	\Return $\textit{polyline}$
+	\EndProcedure
+\end{algorithmic}
+}
+
+% todo obrázek endpoint - endpoint/junction a vyrobená polyline. (2x)
+
+\subsection{Polyline from Junction to Junction}
+
+The second step is similar to the first one, but instead of constructing a single polyline from an endpoint, it constructs multiple polylines from a given junction pixel. This is expected, since an endpoint has only one adjacent foreground pixel, whereas a junction has at least two. The algorithm follows a procedure similar to that of the previous step. It starts by considering the foreground pixels in the 8-neighborhood of the starting junction as initial neighbor pixels.
+
+If an initial neighbor pixel has already been visited, it is skipped. The number of constructed polylines is equal to the number of unvisited foreground neighbors of the starting junction. Then, the starting junction and the selected neighbor are added to the polyline. If the starting neighbor is itself another junction, it is added to the polyline, and the algorithm continues with the next starting neighbor.
+
+Otherwise, the starting neighbor is marked as visited, and the algorithm continues by searching for foreground pixels in its 8-neighborhood. If a foreground neighbor is found and it has already been visited, it is skipped. Otherwise, the algorithm determines whether the pixel is a junction or a regular pixel and performs one of the following two actions:
+
+\begin{itemize}
+	\item If the pixel is a junction, it is added to the polyline, and the algorithm continues with the next starting neighbor by repeating the steps described above.
+	\item If the pixel is not a junction, it is added to the polyline, marked as visited, and the search continues from that pixel.
+\end{itemize}
+
+To improve the accuracy and continuity of the resulting polylines, junction pixels are prioritized over regular foreground pixels whenever possible.This is achieved in the same way as in the previous step, by selecting the closest junction candidate. In our implementation, we used Manhattan distance because of its low computational cost.
+
+{
+\captionof{algorithm}{Polyline from Junction to Junction algorithm}
+\begin{algorithmic}[1]
+	\Procedure{Junction\_to\_junction}{$\textit{starting\_junction},\textit{visited}$}
+	\State $\textit{polyline\_list} \gets \text{initialize empty polyline list}$
+	\State
+	\State $\textit{visited}\text{[ }\textit{starting\_junction}\text{ ]}$ = true
+	\State
+	\For {$\textit{starting\_neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{starting\_junction}$}
+		\If{$\textit{visited}\text{[ }\textit{starting\_neighbor}\text{ ]}$ } 
+			\State $\textbf{continue}$
+		\EndIf
+		\State
 		\State $\textit{queue} \gets \text{initialize queue}$
 		\State $\textit{polyline} \gets \text{initialize empty polyline}$
+		\State $\textit{polyline}\text{.add(}\textit{starting\_junction}\text{)}$
 		\State
-		\State $\textit{queue}\text{.add(}\textit{starting\_endpoint}\text{)}$
-		\While{$\textit{queue}$}
+		\State $\textit{queue}\text{.add(}\textit{starting\_neighbor}\text{)}$
+		\While{$\textit{queue}$ is not empty}
 			\State $\textit{point} \gets \textit{queue}\text{.pop()}$ 
+			\State
+			\If{$\textit{point}\textbf{ is junction}$}
+				\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
+				\State $\textbf{break}$
+			\EndIf
 			\State
 			\State $\textit{visited}\text{[}\textit{ point }\text{]} = \text{true}$
 			\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
 			\State
-			\State $\textit{best\_junction\_candinate}\gets\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$
-			\If{$\textit{best\_junction\_candinate}\text{ exists}$}
-				\State $\textit{polyline}\text{.add(}\textit{best\_junction\_candinate}\text{)}$
-				\State
-				\Return $\textit{polyline}$
+			\State $\textit{best\_endpoint\_or\_junction}\gets\textbf{ select from neighbors of }\textit{point}$
+			\If{$\textit{best\_endpoint\_or\_junction}\text{ exists}$}
+			\State $\textit{polyline}\text{.add(}\textit{best\_endpoint\_or\_junction}\text{)}$
+			\State $\textbf{break}$
 			\EndIf
 			\State
 			\For {$\textit{neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$}
@@ -61,18 +139,80 @@ To increase accuracy and continuity of resulting polyline, we can chose junction
 				\EndIf
 			\EndFor
 		\EndWhile
+		\State
+		\State $\textit{polyline\_list}\text{.add(}\textit{polyline}\text{)}$
+	\EndFor
+	\State
+	\State
+	\Return $\textit{polyline\_list}$
+	\EndProcedure
+\end{algorithmic}
+}
+
+% todo obrázek s resultem junction to junction.
+
+\subsection{Polyline from Closed Contour}
+
+After the first two steps, all remaining unvisited foreground pixels are expected to form closed polylines without endpoints or junctions. For this reason, the algorithm uses the map of previously visited foreground pixels to correctly construct the closed polylines. Closed polylines typically appear when processing contours rather than skeletons.
+
+The algorithm starts by selecting the first unvisited foreground pixel as the starting point. The starting point is then added to the polyline and marked as visited. It then searches for foreground pixels in its 8-neighborhood. 
+
+If an unvisited foreground neighbor is found, it is added to the polyline, marked as visited, and the search continues from that pixel. If no unvisited foreground neighbor exists, the construction of the closed polyline is complete. Finally, the initial starting point is added to the polyline again, since in our implementation a closed polyline is represented by having the same first and last point.
+
+{
+	\captionof{algorithm}{Polyline from Closed Contour algorithm}
+	\begin{algorithmic}[1]
+		\Procedure{Closed\_contour\_to\_polyline}{$\textit{starting\_point},\textit{visited}$}
+		\State $\textit{queue} \gets \text{initialize queue}$
+		\State $\textit{polyline} \gets \text{initialize empty polyline}$
+		\State
+		\State $\textit{queue}\text{.add(}\textit{starting\_point}\text{)}$
+		\While{$\textit{queue}$ is not empty}
+		\State $\textit{point} \gets \textit{queue}\text{.pop()}$ 
+		\State
+		\State $\textit{visited}\text{[}\textit{ point }\text{]} = \text{true}$
+		\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
+		\State
+		\For {$\textit{neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$}
+		\If{$\textit{neighbor}\text{ is foreground} \textbf{ and } \text{not }\textit{visited}\text{[}\textit{ neighbor }\text{]}$}
+		\State $\textit{queue}\text{.add(}\textit{neighbor}\text{)}$
+		\State $\textbf{break}$
+		\EndIf
+		\EndFor
+		\EndWhile
 		
 		\State
-		\State
+		\State $\textit{polyline}\text{.add(}\textit{starting\_point}\text{)}$
+		\State 
 		\Return $\textit{polyline}$
 		\EndProcedure
 	\end{algorithmic}
-\end{algorithm}
+}
 
-This algorithm is applied to all starting endpoints that are not yet visited. 
+% todo obrázek s udělanou closed polyline
 
-% todo obrázek endpoint - endpoint/junction a vyrobená polyline. (2x)
+\subsection{Edge Cases}
 
-\subsection{Polyline from Junction to Junction}
+There are several edge cases that can be handled by the previously described algorithms, but not in an optimal way. In this application, which also relies heavily on user input, we decided not to handle these cases automatically, as doing so may produce unwanted results. Instead, we provide tools that allow the user to resolve such cases manually, for example by stitching two or more polylines together or by closing a polyline.
 
-\subsection{Polyline from Closed Contour}
+Examples of such edge cases include the previously mentioned junction plateaus and L-shaped corners. Although the algorithm can process these cases, it may create redundant line segments or unnecessary connections. Another encountered edge case arises when a 2-pixel-wide contour is created from a foreground region that is too thin. This may result in many short line segments and in a polyline that is not closed.
+
+% todo obrázek L, plateau atd a jak to algoritmus řeší -> tedy asi barvevné spojnice středů?
+
+% todo obrázek rozsypané kontůry
+
+\section{Polyline Modification Algorithms}
+
+
+
+\subsection{Polyline Stitching Algorithm}
+
+\subsection{Douglas--Peucker Algorithm} % todo check jména, not sure about it :D
+
+\section{Spline Construction from Polylines}
+
+\subsection{Hermite and B\'ezier Curve Representations}
+
+\subsection{Catmull--Rom Spline Construction}
+
+\subsection{Curve Subdivision Using de Casteljau's Algorithm}
