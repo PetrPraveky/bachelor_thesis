@@ -207,12 +207,76 @@ Examples of such edge cases include the previously mentioned junction plateaus a
 
 \subsection{Polyline Stitching Algorithm}
 
+
+
 \subsection{Douglas--Peucker Algorithm} % todo check jména, not sure about it :D
+
+
 
 \section{Spline Construction from Polylines}
 
 \subsection{Hermite and B\'ezier Curve Representations}
 
+In our implementation, we chose to represent splines as a sequence of cubic B\'ezier curves rather than as Hermite curves, which are used internally by Unreal Engine~5. The main reason for this choice is that B\'ezier curves are more convenient for the algorithms introduced later in this chapter. At the same time, a cubic B\'ezier curve can be converted to a Hermite representation in a straightforward manner.
+
+A cubic B\'ezier curve $\mathbf{B}(t)$ is defined by two end points, $\mathbf{P}_0$ and $\mathbf{P}_3$, and two control points, $\mathbf{P}_1$ and $\mathbf{P}_2$. It is given by
+\begin{equation}
+	\mathbf{B}(t) = (1 - t)^3\mathbf{P}_0 + 3(1-t)^2t\mathbf{P}_1 + 3(1-t)t^2\mathbf{P}_2 + t^3\mathbf{P}_3,
+\end{equation}
+for $t \in [0,1]$.
+
+A Hermite curve $\mathbf{H}(t)$ is defined by two end points, $\mathbf{H}_0$ and $\mathbf{H}_1$, and two tangent vectors, $\mathbf{M}_0$ and $\mathbf{M}_1$. It is given by
+\begin{equation}
+	\mathbf{H}(t) = (2t^3 - 3t^2 + 1)\mathbf{H}_0 + (t^3 - 2t^2 + t)\mathbf{M}_0 + (-2t^3 + 3t^2)\mathbf{H}_1 + (t^3 - t^2)\mathbf{M}_1,
+\end{equation}
+for $t \in [0,1]$.
+
+A Hermite curve defined by end points $\mathbf{H}_0$, $\mathbf{H}_1$ and tangent vectors $\mathbf{M}_0$, $\mathbf{M}_1$ can be constructed from a cubic B\'ezier curve defined by control points $\mathbf{P}_0$, $\mathbf{P}_1$, $\mathbf{P}_2$, and $\mathbf{P}_3$ using the following relationships:
+\begin{align}
+	\mathbf{H}_0 &= \mathbf{P}_0, \\
+	\mathbf{M}_0 &= 3\left(\mathbf{P}_1 - \mathbf{P}_0\right), \\
+	\mathbf{M}_1 &= 3\left(\mathbf{P}_3 - \mathbf{P}_2\right), \\
+	\mathbf{H}_1 &= \mathbf{P}_3.
+\end{align}
+
 \subsection{Catmull--Rom Spline Construction}
+
+To convert a polyline into a spline represented by B\'ezier curves, we employ a Catmull--Rom spline as an intermediate representation. A Catmull--Rom spline can be viewed as a special case of a cubic Hermite spline in which tangent vectors are determined from neighboring control points.
+
+For the parameterization, we use the centripetal Catmull--Rom spline. Let the knot sequence satisfy
+\begin{equation}
+	t_{k+1} = t_k + \left\lVert \mathbf{P}_{k+1} - \mathbf{P}_k \right\rVert^\alpha,
+\end{equation}
+where $\alpha \in [0,1]$. In our implementation, we use $\alpha = 0.5$. This variant was selected because the centripetal Catmull--Rom spline is the only variant that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
+
+% todo obrázek jak vypadá Catmull--Rom spline mezi čtyřmi body
+
+As follows from the definition, a Catmull--Rom spline segment is constructed from four points, $\mathbf{P}_0$ to $\mathbf{P}_3$, and produces a curve segment between $\mathbf{P}_1$ and $\mathbf{P}_2$. For an open polyline, this means that the spline would not naturally interpolate the first and the last point of the polyline. To resolve this issue, we introduce auxiliary end points defined as
+\begin{align}
+	\mathbf{P}_{-1} &= 2\mathbf{P}_0 - \mathbf{P}_1, \\
+	\mathbf{P}_{n+1} &= 2\mathbf{P}_n - \mathbf{P}_{n-1},
+\end{align}
+where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$.
+
+% todo obrázek jak vypadá Catmull--Rom spline s doplněnými konci (+ vidět ty nové krajní body)
+
+A drawback of this endpoint extension is that it may produce undesirable shapes when the curve is very sharp near the boundary. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
+
+% todo obrázek tohoto edge case
+
+The B\'ezier curve representation of a Catmull--Rom spline segment can be computed directly from the four defining points, $\mathbf{P}_0$ to $\mathbf{P}_3$. If the B\'ezier curve is defined by control points $\mathbf{B}_0$ to $\mathbf{B}_3$, the relationship is given by~\cite{bk_catmull_rom_bezier}
+\begin{align}
+	\mathbf{B}_0 &= \mathbf{P}_1, \\
+	\mathbf{B}_1 &= \frac{d_1^{2\alpha}\mathbf{P}_2 - d_2^{2\alpha}\mathbf{P}_0 + \left(2d_1^{2\alpha} + 3d_1^\alpha d_2^\alpha + d_2^{2\alpha}\right)\mathbf{P}_1}{3d_1^\alpha\left(d_1^\alpha + d_2^\alpha\right)}, \\
+	\mathbf{B}_2 &= \frac{d_3^{2\alpha}\mathbf{P}_1 - d_2^{2\alpha}\mathbf{P}_3 + \left(2d_3^{2\alpha} + 3d_3^\alpha d_2^\alpha + d_2^{2\alpha}\right)\mathbf{P}_2}{3d_3^\alpha\left(d_3^\alpha + d_2^\alpha\right)}, \\
+	\mathbf{B}_3 &= \mathbf{P}_2,
+\end{align}
+where $d_1$, $d_2$, and $d_3$ are defined as
+\begin{align}
+	d_1 &= \left\lVert \mathbf{P}_1 - \mathbf{P}_0 \right\rVert, \\
+	d_2 &= \left\lVert \mathbf{P}_2 - \mathbf{P}_1 \right\rVert, \\
+	d_3 &= \left\lVert \mathbf{P}_3 - \mathbf{P}_2 \right\rVert,
+\end{align}
+and $\left\lVert \cdot \right\rVert$ denotes the Euclidean norm.
 
 \subsection{Curve Subdivision Using de Casteljau's Algorithm}

@@ -14,15 +14,37 @@ A binary mask is created by selecting a specified color and marking the correspo
 
 \section{Euclidean Distance Transform}
 
-Euclidean distance transform, referred to as EDT, of binary image assigns to each pixel the Euclidean distance to the nearest specified pixel. This can be used for transforming widths and distances from image to real-world units. 
+The Euclidean distance transform, referred to as EDT, of a binary image assigns to each pixel the Euclidean distance to the nearest specified pixel. This can be used to transform widths and distances from image space into real-world units.
 
-% todo vysvětlení nebo se odkázat na paper
+In our implementation, we use the transformation of a cost function on a grid using spatial information~\cite{bk_edt}. This formulation is a generalization of the Euclidean distance transform for binary images. To compute distances assigned to individual pixels, we define the cost function as
+\begin{equation}
+	f(q) =
+	\begin{cases}
+		0 & \text{if } q \text{ is a foreground pixel}, \\
+		\infty & \text{otherwise},
+	\end{cases}
+\end{equation}
+where $q$ is a pixel of the binary mask. The distance transform of $f$ is denoted by $\mathcal{D}_f$ and defined as
+\begin{equation}
+	\mathcal{D}_f(p) = \min_{q\in \mathcal{G}}\left(d(p,q) + f(q)\right),
+\end{equation}
+where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is the Euclidean distance.
+
+% todo obrázek binarymask -> hodnoty EDT (+ nekonečna?)
 
 In our application, this algorithm is used to extract the widths of roads or rivers from the segmentation image and convert them to approximate real-world widths. Another use case is the construction of a signed distance field, or SDF.
 
-An SDF is a field in which the value corresponding to each pixel represents the distance from that pixel to the nearest edge of a foreground region. The value is negative if the pixel belongs to the background and positive if it belongs to the foreground.
+An SDF is a field in which the value corresponding to each pixel represents the distance from that pixel to the nearest edge of a foreground region. To compute the EDT for background pixels, we invert the cost function $f(q)$, i.e.,
+\begin{equation}
+	f(q) =
+	\begin{cases}
+		0 & \text{if } q \text{ is a background pixel}, \\
+		\infty & \text{otherwise},
+	\end{cases}
+\end{equation}
+where $q$ is a pixel of the binary mask. The resulting value is taken as negative for background pixels and positive for foreground pixels.
 
-% todo obrázek binarymask -> hodnoty
+% todo obrázek binarymask -> hodnoty SDF na té samé masce jako nahoře
 
 \section{Binary Mask Smoothing}
 
@@ -46,7 +68,7 @@ Thinning of a binary mask, referred to as skeletonization, is a process of remov
 	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground region is touching the side.
 \end{itemize}
 
-Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm and Zhang-Suen algorithm. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. 
+Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm and Zhang-Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu}, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. 
 
 % todo IMAGE GUO-HALL X ZHANG-SUEN X JAIN-KUMAR
 
