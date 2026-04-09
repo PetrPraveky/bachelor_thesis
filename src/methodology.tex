@@ -355,6 +355,7 @@ In our implementation, we chose to represent splines as a sequence of cubic B\'e
 A cubic B\'ezier curve $\mathbf{B}(t)$ is defined by two end points, $\mathbf{P}_0$ and $\mathbf{P}_3$, and two control points, $\mathbf{P}_1$ and $\mathbf{P}_2$. It is given by
 \begin{equation}
 	\mathbf{B}(t) = (1 - t)^3\mathbf{P}_0 + 3(1-t)^2t\mathbf{P}_1 + 3(1-t)t^2\mathbf{P}_2 + t^3\mathbf{P}_3,
+	\label{eq:bezier_curve}
 \end{equation}
 for $t \in [0,1]$.
 
@@ -374,15 +375,18 @@ A Hermite curve defined by end points $\mathbf{H}_0$, $\mathbf{H}_1$ and tangent
 
 \subsection{Catmull--Rom Spline Construction}
 
-To convert a polyline into a spline represented by B\'ezier curves, we employ a Catmull--Rom spline as an intermediate representation. A Catmull--Rom spline can be viewed as a special case of a cubic Hermite spline in which tangent vectors are determined from neighboring control points.
+To interpolate spline through points of a polyline, we employed a Catmull--Rom spline. Catmull--Rom splines are a family of cubic interpolating splines constructed such that a tangent at point $\mathbf{P}_i$ is computed using the previous point $\mathbf{P}_{i-1}$ and the next point $\mathbf{P}_{i+1}$.
 
-For the parameterization, we use the centripetal Catmull--Rom spline. Let the knot sequence satisfy
+We used a class of parameterization described in~\cite{bk_catmull_rom_parameterization} of Catmull--Rom spline. Let the knot sequence satisfy
 \begin{equation}
 	t_{k+1} = t_k + \left\lVert \mathbf{P}_{k+1} - \mathbf{P}_k \right\rVert^\alpha,
+	\label{eq:catmull_rom_knot}
 \end{equation}
-where $\alpha \in [0,1]$. In our implementation, we use $\alpha = 0.5$. This variant was selected because the centripetal Catmull--Rom spline is the only variant that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
+where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal.
 
-% todo obrázek jak vypadá Catmull--Rom spline mezi čtyřmi body
+In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
+
+% todo obrázek jak vypadá Catmull--Rom spline mezi čtyřmi body s různými alpha (3?)
 
 As follows from the definition, a Catmull--Rom spline segment is constructed from four points, $\mathbf{P}_0$ to $\mathbf{P}_3$, and produces a curve segment between $\mathbf{P}_1$ and $\mathbf{P}_2$. For an open polyline, this means that the spline would not naturally interpolate the first and the last point of the polyline. To resolve this issue, we introduce auxiliary end points defined as
 \begin{align}
@@ -397,6 +401,8 @@ A drawback of this endpoint extension is that it may produce undesirable shapes 
 
 % todo obrázek tohoto edge case
 
+The knot sequence in Equation~\eqref{eq:catmull_rom_knot} determines the parameter spacing between interpolation points. Unlike the Hermite or B\'ezier formulations, it does not directly provide a polynomial expression of the curve segment. However, this parameterization can be used to construct equivalent Hermite or B\'ezier representations of the same curve segment.
+
 The B\'ezier curve representation of a Catmull--Rom spline segment can be computed directly from the four defining points, $\mathbf{P}_0$ to $\mathbf{P}_3$. If the B\'ezier curve is defined by control points $\mathbf{B}_0$ to $\mathbf{B}_3$, the relationship is given by~\cite{bk_catmull_rom_bezier}
 \begin{align}
 	\mathbf{B}_0 &= \mathbf{P}_1, \\
@@ -410,7 +416,47 @@ where $d_1$, $d_2$, and $d_3$ are defined as
 	d_2 &= \left\lVert \mathbf{P}_2 - \mathbf{P}_1 \right\rVert, \\
 	d_3 &= \left\lVert \mathbf{P}_3 - \mathbf{P}_2 \right\rVert,
 \end{align}
-and $\left\lVert \cdot \right\rVert$ denotes the Euclidean norm.
+and $\left\lVert \cdot \right\rVert$ denotes the Euclidean norm. The knot intervals corresponding to the distances $d_1$, $d_2$, and $d_3$ satisfy
+\begin{align}
+	t_1 - t_0 &= d_1^\alpha, \\
+	t_2 - t_1 &= d_2^\alpha, \\
+	t_3 - t_2 &= d_3^\alpha.
+\end{align}
 
 \subsection{Curve Subdivision Using de Casteljau's Algorithm}
+
+% todo reference na numerickou stabilitu
+% todo reference na splitování?
+
+B\'ezier curve can be constructed recursively by using de Casteljau's algorithm. This method is numerically more stable, than using polynomial definition~\eqref{eq:bezier_curve}. Anotherimportant use case of this algorithm is subdividing B\'ezier curve into two segments and subsequently getting correct their control points.
+
+Let cubic B\'ezier curve $\mathbf{B}(t)$ be defined by four control points $\mathbf{P}_0$ to $\mathbf{P}_3$ and $t \in \left[0,1\right]$. De Casteljau's algorithm for cubic B\'ezier curve $\mathbf{B}$ works by performing three steps. For parameter $u \in \left[0,1\right]$ it creates points
+\begin{equation}
+	\mathbf{Q}_i = (\mathbf{P}_{i+1} - \mathbf{P}_i)u + \mathbf{P}_i,
+\end{equation}
+for $i = 0,1,2$. Point $\mathbf{Q}_i$ is a point on a line connecting control points $\mathbf{P}_i$ an $\mathbf{P}_{i+1}$. Then it creates another points
+\begin{equation}
+	\mathbf{R}_j = (\mathbf{Q}_{j+1} - \mathbf{Q}_j)u + \mathbf{Q}_j,
+\end{equation}
+for $j = 0,1$. Similarly as with $\mathbf{Q}_i$, point $\mathbf{R}_j$ is a point on a line connecting points $\mathbf{Q}_{j}$ and $\mathbf{Q}_{j+1}$. Final point is constructed on a line between $\mathbf{R}_0$ and $\mathbf{R}_1$ as
+\begin{equation}
+	\mathbf{S} = (\mathbf{R}_1 - \mathbf{R}_0)u + \mathbf{R}_0.
+\end{equation}
+Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. 
+
+% todo obrázek jak vypdá ta rekurze de Casteljau
+
+We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$ is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$ is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
+
+% todo dva obrázky jak vypadají ty části :D
+
+
+
+
+
+
+
+
+
+
 
