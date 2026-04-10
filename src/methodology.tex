@@ -110,7 +110,7 @@ Thinning of a binary mask, referred to as skeletonization, is a process of remov
 	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground region is touching the side.
 \end{itemize}
 
-Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm and Zhang-Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu}, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. 
+Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm~\cite{bk_guo_hall} and Zhang-Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu}, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. 
 
 % todo IMAGE GUO-HALL X ZHANG-SUEN X JAIN-KUMAR
 
@@ -344,7 +344,82 @@ Examples of such edge cases include the previously mentioned junction plateaus a
 
 \subsection{Polyline Stitching Algorithm}
 
-\subsection{Polyline Simplification Using Douglas--Peucker Algorithm} % todo check jména, not sure about it :D
+Polyline stitching is the process of connecting two or more polylines by merging pairs of endpoints, resulting in one or more longer continuous polylines. A distance threshold can be specified that determines when two endpoints are considered close enough to be merged.
+
+The proposed algorithm follows a greedy strategy. In each iteration, it considers all endpoints of currently active polylines and finds the closest valid pair whose distance does not exceed the specified threshold. The corresponding polylines are then merged into a new polyline, while one of the original polylines is marked as inactive. This process is repeated until no further valid merge can be found.
+
+Since the algorithm is greedy in nature, it does not guarantee a optimal stitching configuration. Its intended use-case is to stitch two or more polylines into one continuous polyline. 
+
+{
+	\captionof{algorithm}{Polyline Stitching algorithm}
+	\begin{algorithmic}[1]
+		\Procedure{Stitch\_Polylines}{$\textit{polylines},\textit{max\_distance}$}
+		\State $\textit{resulting\_polylines} \gets \text{initialize empty list}$
+		\State $\textit{used\_polylines} \gets \text{initialize list with false values, length of }\textit{polylines}$
+		\State $\textit{polyline\_ends} \gets \text{initialize empty list of points}$
+		\State
+		\While {true}
+			\State $\textit{polyline\_ends}\text{.reset()}$
+			\State
+			\For {$\textit{polyline}\textbf{ from }\textit{polylines}$}
+				\If {$\text{not }\textit{used\_polylines}\text{[ }\textit{polyline}\text{ ]}$}
+					\State $\textit{polyline\_ends}\text{.add(}\textit{polyline}\text{.first}\text{)}$
+					\State $\textit{polyline\_ends}\text{.add(}\textit{polyline}\text{.last}\text{)}$
+				\EndIf
+			\EndFor
+			\State
+			\State $\textit{best\_pair} \gets \text{iniitalize}$
+			\State $\textit{best\_distance} = \infty$
+			\For {$\textit{first\_end}\textbf{ from }\textit{polyline\_ends}$}
+				\For {$\textit{second\_end}\textbf{ from }\textit{polyline\_ends}$}
+					\If {$\text{if both ends are not from the same polyline}$} 
+						\State $\textit{distance} = \left|\left|\textit{first\_end} - \textit{second\_end}\right|\right|$
+						\State
+						\If {$\textit{distance} \leq \textit{max\_distance}$ and $\textit{distance} < \textit{best\_distance}$}
+							\State $\textit{best\_pair} = (\textit{first\_end}, \textit{second\_end})$
+							\State $\textit{best\_distance} = \textit{distance}$
+						\EndIf
+					\EndIf
+				\EndFor
+			\EndFor
+			\If {$\textit{best\_pair}\text{ not chosen}$}
+				\State $\textbf{break}$
+			\EndIf
+			\State
+			\State construct $\textit{merged\_polyline}$ from the $\textit{best\_pair}$
+			\State reverse one polyline if necessary
+			\State remove the duplicate connecting endpoint
+			\State
+			\State $\textit{polylines}\text{[ index of }\textit{best\_pair}\text{.first ]} = \textit{merged\_polyline}$
+			\State $\textit{used\_polylines}\text{[ }\textit{best\_pair}\text{.second}\text{]} = \text{true}$
+		\EndWhile
+		\State
+		\For {$\textit{polyline}\textbf{ from }\textit{polylines}$}
+			\If {$\text{not }\textit{used\_polylines}\text{[ }\textit{polyline}\text{]}$}
+				\State $\textit{resulting\_polylines}\text{.add(}\textit{polyline}\text{)}$
+			\EndIf
+		\EndFor
+		\State
+		\Return $\textit{resulting\_polylines}$
+		\EndProcedure
+	\end{algorithmic}
+}
+
+Depending on which endpoints are connected, one of the polylines may need to be reversed before merging in order to preserve a consistent point ordering. When polylines are merged, one of the connecting endpoints must be removed, as it would result in a duplicate point and other algorithms may not work as intended.
+
+In the implementation, an additional iteration limit can be used as a safety measure to prevent unexpected infinite execution in degenerate cases.
+
+\subsection{Polyline Simplification Using Douglas--Peucker Algorithm}
+
+Polyline created from binary mask skeleton or contour can have large amount of redundant points, which could hinder subsequent spline interpolation. To solve this, we employ Douglas--Peucker algorithm~\cite{bk_douglas_peucker} for simplifying polylines.
+
+Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examinesall the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point
+
+% todo ukázat pár kroků algoritmu na obrázku
+
+When the recursion is completed a new polylines is constructed from the points which are marked to be kept. Resulting polyline is of the same orientation and approximates the shape of the initial polyline, depending on the parameter $\epsilon$. This simplification step reduces the number of control points while preserving the overall shape of the extracted topology, which makes the subsequent spline construction more stable and easier to control.
+
+% todo přidat jak to vypadá na velké polyline s mnoha body + kolik % bodů to vymazalo, třeba 3-4 polylines. 3-4 hodnoty epxilon, prostě tabulku
 
 \section{Spline Construction from Polylines}
 
