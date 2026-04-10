@@ -173,162 +173,69 @@ If the number of foreground neighbors is one, the pixel is classified as an endp
 
 A junction pixel has three or more foreground neighbors, although in typical cases it has exactly three. If four or more foreground neighbors are present, this may indicate a more complex local structure, such as a plateau or another shape that can complicate polyline extraction.
 
-
 \subsection{Polyline Tracing Algorithm}
 
-The extracted topology, whether obtained from a binary mask skeleton or from a contour, is still represented as an unordered set of foreground pixels in the image grid. For subsequent processing, such as simplification or spline construction, this discrete representation must be converted into an ordered geometric form.
+The extracted topology, whether obtained from a binary mask skeleton or from a contour, is still represented as an unordered set of foreground pixels in the image grid. For subsequent processing, such as polyline simplification or spline construction, this discrete representation must be converted into one or more ordered polylines.
 
-The goal of the tracing algorithm is therefore to convert the extracted topology pixels into one or more ordered polylines that collectively cover all foreground pixels of the topology. To achieve this, the algorithm uses the previously classified endpoint and junction pixels together with a visited map. The visited map stores whether a foreground pixel has already been assigned to a traced polyline, which prevents the same branch from being processed repeatedly. Junction pixels require special treatment, because a single junction may belong to multiple output polylines.
+The goal of the tracing algorithm is therefore to transform the foreground topology pixels into a set of ordered polylines that collectively cover the entire topology. To achieve this, the algorithm uses the previously detected endpoint and junction pixels together with a visited map. The visited map records whether a foreground pixel has already been assigned to a traced polyline, which prevents repeated processing of the same branch. Junction pixels require special handling, since a single junction may belong to multiple output polylines.
 
 The tracing is divided into three steps. First, all branches starting at endpoints are traced until another endpoint or a junction is reached. Second, the remaining branches connecting pairs of junctions are traced. Finally, any still unvisited foreground pixels are assumed to belong to closed contours and are processed separately. This ordering is important, because endpoint-based branches are the least ambiguous, while closed contours can only be identified reliably after all open branches have already been removed.
 
-\subsection{Tracing from Endpoint to Junction or Endpoint}
+When tracing from a current pixel, the algorithm examines its 8-neighborhood and selects the next valid foreground pixel that has not yet been visited. If multiple candidates exist, endpoint or junction pixels are preferred over regular foreground pixels. Among such candidates, the closest one is selected according to Manhattan distance. This rule improves local continuity of the traced polyline and reduces short redundant detours that may otherwise arise in the discrete pixel representation.
 
-The first step constructs a polyline starting at an endpoint and following the topology until either another endpoint or a junction is reached. This case corresponds to a branch with a well-defined starting point, and it is therefore the most straightforward tracing scenario.
-
-The algorithm starts by inserting the selected endpoint into the polyline and marking it as visited. It then repeatedly examines the 8-neighborhood of the current pixel and selects the next foreground pixel that has not yet been visited. On the newly found pixel, one of the three following actions is performed:
-\begin{itemize}
-	\item If the pixel is an endpoint, it is marked as visited, added to the polyline and the branch is complete.
-	\item If the pixel is an junction, the branch is also terminated, but the pixel is not marked as visited.
-	\item If the pixel is regular topology pixel, it is marked as visited, appended to the polyline, and the tracing continues from that location.
-\end{itemize}
-
-When more than one valid foreground neighbor is available, endpoint or junction candidates are prioritized over regular foreground pixels. Among such candidates, the closest one is selected using Manhattan distance. This additional selection rule improves continuity of the resulting polyline and reduces the occurrence of short redundant segments or incorrect local detours that may otherwise appear in discrete pixel topology.
+% todo obrázek - ukázaka hledání souseda v nejednoznačené situaci -> asi T shaped problém. tedy 
+% todo ..#
+% todo ###  <- Aby se vybrala tahle junction
+% todo ..#
+% todo nevím jestli teda ho udělat, ale bylo by to asi dobré. 
 
 {
-	\captionof{algorithm}{Polyline from Endpoint to Junction or Endpoint algorithm}
+	\captionof{algorithm}{Topology tracing into ordered polylines}
 	\begin{algorithmic}[1]
-		\Procedure{Endpoint\_to\_junction\_or\_endpoint}{$\textit{starting\_endpoint},\textit{visited}$}
-		\State $\textit{queue} \gets \text{initialize queue}$
-		\State $\textit{polyline} \gets \text{initialize empty polyline}$
+		\Procedure{Trace\_Topology}{$\textit{foreground\_pixels}, \textit{endpoints}, \textit{junctions}$}
+		\State $\textit{visited} \gets$ map initialized to false
+		\State $\textit{result} \gets$ empty list of polylines
 		\State
-		\State $\textit{queue}\text{.add(}\textit{starting\_endpoint}\text{)}$
-		\While{$\textit{queue}$ is not empty}
-		\State $\textit{point} \gets \textit{queue}\text{.pop()}$ 
-		\State
-		\State $\textit{visited}\text{[}\textit{ point }\text{]} = \text{true}$
-		\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
-		\State
-		\State $\textit{best\_endpoint\_or\_junction}\gets\textbf{ select from neighbors of }\textit{point}$
-		\If{$\textit{best\_endpoint\_or\_junction}\text{ exists}$}
-		\State $\textit{polyline}\text{.add(}\textit{best\_endpoint\_or\_junction}\text{)}$
-		\State
-		\Return $\textit{polyline}$
-		\EndIf
-		\State
-		\For {$\textit{neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$}
-		\If{$\textit{neighbor}\text{ is foreground} \textbf{ and } \text{not }\textit{visited}\text{[}\textit{ neighbor }\text{]}$}
-		\State $\textit{queue}\text{.add(}\textit{neighbor}\text{)}$
-		\State $\textbf{break}$
-		\EndIf
-		\EndFor
-		\EndWhile
-		
-		\State
-		\State
-		\Return $\textit{polyline}$
-		\EndProcedure
-	\end{algorithmic}
-}
-
-\subsection{Tracing from Junction to Junction}
-
-After all branches with endpoint start vertices have been processed, some foreground pixels may still remain unvisited. In a skeleton topology, these remaining pixels are typically expected to form branches connecting one junction to another. Unlike the previous case, a junction can have multiple outgoing branches, and therefore one starting junction may produce several output polylines.
-
-For this reason, the algorithm considers each unvisited foreground neighbor of the starting junction separately. For every such neighbor, a new polyline is initialized with the starting junction as its first point. If the selected neighbor is itself a junction, the resulting branch consists only of a direct connection between two adjacent junctions, and the tracing for that branch ends immediately.
-
-Otherwise, the neighbor is treated as the first regular pixel of a new branch. The tracing then proceeds in the same way as in the endpoint case. Regular pixels are appended to the polyline and marked as visited, while the first encountered junction terminates the current branch. The starting junction is marked as visited before the traversal begins, but terminal junctions are not marked during branch termination, since they may also participate in other junction-to-junction branches.
-
-As in the previous step, a junction candidate found in the current 8-neighborhood is prioritized over regular foreground pixels. If more such candidates exist, the closest one is selected according to Manhattan distance. This makes the tracing more stable in ambiguous local configurations and helps preserve the intended branch structure of the topology.
-
-{
-	\captionof{algorithm}{Polyline from Junction to Junction algorithm}
-	\begin{algorithmic}[1]
-		\Procedure{Junction\_to\_junction}{$\textit{starting\_junction},\textit{visited}$}
-		\State $\textit{polyline\_list} \gets \text{initialize empty polyline list}$
-		\State
-		\State $\textit{visited}\text{[ }\textit{starting\_junction}\text{ ]}$ = true
-		\State
-		\For {$\textit{starting\_neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{starting\_junction}$}
-			\If{$\textit{visited}\text{[ }\textit{starting\_neighbor}\text{ ]}$ } 
-				\State $\textbf{continue}$
+		\ForAll{$\textit{endpoint} \textbf{ from } \textit{endpoints}$}
+			\If{$\text{not } \textit{visited}\text{[ }\textit{endpoint}\text{ ]}$}
+				\State trace a polyline starting at $\textit{endpoint}$
+				\State stop when another endpoint or a junction is reached
+				\State mark regular traced pixels as visited
+				\State add the resulting polyline to $\textit{result}$
 			\EndIf
-			\State
-			\State $\textit{queue} \gets \text{initialize queue}$
-			\State $\textit{polyline} \gets \text{initialize empty polyline}$
-			\State $\textit{polyline}\text{.add(}\textit{starting\_junction}\text{)}$
-			\State
-			\State $\textit{queue}\text{.add(}\textit{starting\_neighbor}\text{)}$
-			\While{$\textit{queue}$ is not empty}
-				\State $\textit{point} \gets \textit{queue}\text{.pop()}$ 
-				\State
-				\If{$\textit{point}\textbf{ is junction}$}
-					\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
-					\State $\textbf{break}$
-				\EndIf
-				\State
-				\State $\textit{visited}\text{[}\textit{ point }\text{]} = \text{true}$
-				\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
-				\State
-				\State $\textit{best\_endpoint\_or\_junction}\gets\textbf{ select from neighbors of }\textit{point}$
-				\If{$\textit{best\_endpoint\_or\_junction}\text{ exists}$}
-					\State $\textit{polyline}\text{.add(}\textit{best\_endpoint\_or\_junction}\text{)}$
-					\State $\textbf{break}$
-				\EndIf
-				\State
-				\For {$\textit{neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$}
-					\If{$\textit{neighbor}\text{ is foreground} \textbf{ and } 		\text{not }\textit{visited}\text{[}\textit{ neighbor }\text{]}$}
-						\State $\textit{queue}\text{.add(}\textit{neighbor}\text{)}$
-						\State $\textbf{break}$
-					\EndIf
-				\EndFor
-			\EndWhile
-			\State
-			\State $\textit{polyline\_list}\text{.add(}\textit{polyline}\text{)}$
 		\EndFor
 		\State
-		\State
-		\Return $\textit{polyline\_list}$
-		\EndProcedure
-	\end{algorithmic}
-}
-
-\subsection{Tracing from Closed Contour}
-
-After the previous two steps, all open branches are expected to have been removed from consideration. Any remaining unvisited foreground pixels are therefore assumed to belong to closed polylines with no endpoints and no junctions. Such cases occur most commonly when tracing contours of foreground regions rather than skeleton centerlines.
-
-The algorithm begins by selecting any unvisited foreground pixel as the starting point of a new polyline. This point is appended to the polyline, marked as visited, and used as the initial tracing position. The algorithm then repeatedly searches the 8-neighborhood for another unvisited foreground pixel and continues the traversal until no such neighbor exists.
-
-Because this case does not contain endpoints or junctions, no special termination pixel is expected during the traversal. Instead, the tracing ends only when the algorithm returns to a state in which the current point has no unvisited foreground neighbor. At that moment, the entire closed contour has been traversed. To represent closure explicitly in our implementation, the initial starting point is appended to the polyline once more, so that the first and last point of the resulting ordered list are identical.
-
-{
-	\captionof{algorithm}{Polyline from Closed Contour algorithm}
-	\begin{algorithmic}[1]
-		\Procedure{Closed\_contour\_to\_polyline}{$\textit{starting\_point},\textit{visited}$}
-		\State $\textit{queue} \gets \text{initialize queue}$
-		\State $\textit{polyline} \gets \text{initialize empty polyline}$
-		\State
-		\State $\textit{queue}\text{.add(}\textit{starting\_point}\text{)}$
-		\While{$\textit{queue}$ is not empty}
-			\State $\textit{point} \gets \textit{queue}\text{.pop()}$ 
-			\State
-			\State $\textit{visited}\text{[}\textit{ point }\text{]} = \text{true}$
-			\State $\textit{polyline}\text{.add(}\textit{point}\text{)}$
-			\State
-			\For {$\textit{neighbor}\textbf{ from }\textit{neighbors}\textbf{ of }\textit{point}$}
-				\If{$\textit{neighbor}\text{ is foreground} \textbf{ and } \text{not }\textit{visited}\text{[}\textit{ neighbor }\text{]}$}
-					\State $\textit{queue}\text{.add(}\textit{neighbor}\text{)}$
-					\State $\textbf{break}$
-				\EndIf
+		\ForAll{$\textit{junction} \textbf{ from } \textit{junctions}$}
+			\ForAll{unvisited foreground neighbors $\textbf{of } \textit{junction}$}
+				\State trace a polyline starting at $\textit{junction}$
+				\State stop when another junction is reached
+				\State mark regular traced pixels as visited
+				\State add the resulting polyline to $\textit{result}$
 			\EndFor
-		\EndWhile
+		\EndFor
 		\State
-		\State $\textit{polyline}\text{.add(}\textit{starting\_point}\text{)}$
-		\State 
-		\Return $\textit{polyline}$
+		\ForAll{unvisited foreground pixels $p$}
+		\State trace a closed contour starting at $p$
+		\State continue until no unvisited foreground neighbor exists
+		\State append the starting point again to represent closure
+		\State add the resulting polyline to $\textit{result}$
+		\EndFor
+		\State
+		\Return $\textit{result}$
 		\EndProcedure
 	\end{algorithmic}
 }
+
+\paragraph{Tracing from endpoints.}
+In the first stage, each unvisited endpoint is used as a starting point of a new polyline. The tracing then proceeds through unvisited foreground pixels until either another endpoint or a junction is reached. Regular foreground pixels are appended to the polyline and marked as visited. If the traced branch terminates at a junction, the junction is appended to the polyline but is not marked as visited, since it may also serve as a connection point for other branches.
+
+\paragraph{Tracing between junctions.}
+After all endpoint-based branches have been processed, some foreground pixels may still remain unvisited. In a skeleton topology, these pixels are typically expected to form branches connecting one junction to another. Since a single junction may have multiple outgoing branches, each of its unvisited foreground neighbors is considered separately. For each such neighbor, a new polyline is initialized with the starting junction as its first point and traced until another junction is reached. As in the previous case, only regular foreground pixels are marked as visited during the traversal.
+
+\paragraph{Tracing closed contours.}
+After the previous two stages, any remaining unvisited foreground pixels are assumed to belong to closed contours with no endpoints and no junctions. This case occurs most commonly when tracing contours of foreground regions rather than binary mask skeletons. The tracing starts from any remaining unvisited foreground pixel and continues through unvisited foreground neighbors until the contour has been fully traversed. To represent closure explicitly, the starting point is appended once more at the end of the resulting polyline so that the first and last point are identical.
+
+% todo ukázka jak vypadá celá trasa u end to end, junction to junction a closed contour. To end to end a junction to junction by bylo dobré na stejném/obdobném networku ukázat.
 
 \subsection{Edge Cases}
 
