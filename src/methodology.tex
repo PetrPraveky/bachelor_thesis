@@ -322,7 +322,12 @@ Polyline created from binary mask skeleton or contour can have large amount of r
 
 Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examinesall the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point
 
-% todo ukázat pár kroků algoritmu na obrázku
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{./fig/geogebra/douglas_peucker.pdf}
+	\caption{Visual example of Douglas--Peucker algorithm. Initial polyline is drawn in gray dotted line, final polyline is black. Blue rectangles are visualization of parameter $\epsilon$.}
+	\label{fig:douglas_peucker}
+\end{figure}
 
 When the recursion is completed a new polylines is constructed from the points which are marked to be kept. Resulting polyline is of the same orientation and approximates the shape of the initial polyline, depending on the parameter $\epsilon$. This simplification step reduces the number of control points while preserving the overall shape of the extracted topology, which makes the subsequent spline construction more stable and easier to control.
 
@@ -341,11 +346,25 @@ A cubic B\'ezier curve $\mathbf{B}(t)$ is defined by two end points, $\mathbf{P}
 \end{equation}
 for $t \in [0,1]$.
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/geogebra/bezier_curve.pdf}
+	\caption{Example of cubic B\'ezier curve constructed from four control points.}
+	\label{fig:bezier_curve}
+\end{figure}
+
 A Hermite curve $\mathbf{H}(t)$ is defined by two end points, $\mathbf{H}_0$ and $\mathbf{H}_1$, and two tangent vectors, $\mathbf{M}_0$ and $\mathbf{M}_1$. It is given by
 \begin{equation}
 	\mathbf{H}(t) = (2t^3 - 3t^2 + 1)\mathbf{H}_0 + (t^3 - 2t^2 + t)\mathbf{M}_0 + (-2t^3 + 3t^2)\mathbf{H}_1 + (t^3 - t^2)\mathbf{M}_1,
 \end{equation}
 for $t \in [0,1]$.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/geogebra/hermite_spline.pdf}
+	\caption{Example of Hermite spline constructed from two points and two tangent vectors.}
+	\label{fig:hermite_spline}
+\end{figure}
 
 A Hermite curve defined by end points $\mathbf{H}_0$, $\mathbf{H}_1$ and tangent vectors $\mathbf{M}_0$, $\mathbf{M}_1$ can be constructed from a cubic B\'ezier curve defined by control points $\mathbf{P}_0$, $\mathbf{P}_1$, $\mathbf{P}_2$, and $\mathbf{P}_3$ using the following relationships:
 \begin{align}
@@ -368,7 +387,12 @@ where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterizat
 
 In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
 
-% todo obrázek jak vypadá Catmull--Rom spline mezi čtyřmi body s různými alpha (3?)
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{./fig/geogebra/catmull_rom.pdf}
+	\caption{Example of spline interpolation by Catmull--Rom spline. Points $\mathbf{B}_1,\mathbf{B}_2,\mathbf{C}_1,\mathbf{C}_2,\mathbf{D}_1,\mathbf{D}_2$ are corresponding control points for B\'ezier curve.}
+	\label{fig:catmull_rom}
+\end{figure}
 
 As follows from the definition, a Catmull--Rom spline segment is constructed from four points, $\mathbf{P}_0$ to $\mathbf{P}_3$, and produces a curve segment between $\mathbf{P}_1$ and $\mathbf{P}_2$. For an open polyline, this means that the spline would not naturally interpolate the first and the last point of the polyline. To resolve this issue, we introduce auxiliary end points defined as
 \begin{align}
@@ -377,11 +401,21 @@ As follows from the definition, a Catmull--Rom spline segment is constructed fro
 \end{align}
 where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$.
 
-% todo obrázek jak vypadá Catmull--Rom spline s doplněnými konci (+ vidět ty nové krajní body)
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/geogebra/catmull_rom_edge.pdf}
+	\caption{Example of Catmull--Rom endpoint extension.}
+	\label{fig:catmull_rom_extension}
+\end{figure}
 
-A drawback of this endpoint extension is that it may produce undesirable shapes when the curve is very sharp near the boundary. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
+A drawback of this endpoint extension is that it may produce undesirable shapes when the polyline forms a sharp turn near the boundary. As shown in Fig.~\ref{fig:catmull_rom_extension_edgecase}, the first spline segment is constructed from the points $\mathbf{P}_{-1}, \mathbf{P}_0, \mathbf{P}_1$, and $\mathbf{P}_2$. Since $\mathbf{P}_{-1}$ is defined to be collinear with $\mathbf{P}_0$ and $\mathbf{P}_1$, the tangent of the segment between $\mathbf{P}_0$ and $\mathbf{P}_1$ at $\mathbf{P}_0$ is aligned with the line passing through these points. As a result, the curve segment is pulled in the tangent direction, which may lead to an unnatural shape near the endpoint. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
 
-% todo obrázek tohoto edge case
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.4\textwidth]{./fig/geogebra/catmull_rom_edgecase.pdf}
+	\caption{Example of Catmull--Rom endpoint extension sharp curve.}
+	\label{fig:catmull_rom_extension_edgecase}
+\end{figure}
 
 The knot sequence in Equation~\eqref{eq:catmull_rom_knot} determines the parameter spacing between interpolation points. Unlike the Hermite or B\'ezier formulations, it does not directly provide a polynomial expression of the curve segment. However, this parameterization can be used to construct equivalent Hermite or B\'ezier representations of the same curve segment.
 
@@ -408,7 +442,6 @@ and $\left\lVert \cdot \right\rVert$ denotes the Euclidean norm. The knot interv
 \subsection{Curve Subdivision Using de Casteljau's Algorithm}
 
 % todo reference na numerickou stabilitu
-% todo reference na splitování?
 
 B\'ezier curve can be constructed recursively by using de Casteljau's algorithm. This method is numerically more stable, than using polynomial definition~\eqref{eq:bezier_curve}. Anotherimportant use case of this algorithm is subdividing B\'ezier curve into two segments and subsequently getting correct their control points.
 
@@ -426,11 +459,29 @@ for $j = 0,1$. Similarly as with $\mathbf{Q}_i$, point $\mathbf{R}_j$ is a point
 \end{equation}
 Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. 
 
-% todo obrázek jak vypdá ta rekurze de Casteljau
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/geogebra/de_casteljau.pdf}
+	\caption{Visual example of de Casteljau algorithm for $u=0.35$.}
+	\label{fig:de_casteljau}
+\end{figure}
 
-We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$ is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$ is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
+We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in~\ref{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in~\ref{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
 
-% todo dva obrázky jak vypadají ty části :D
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Left spline subdivision.] {
+		\includegraphics[width=0.48\textwidth]{./fig/geogebra/de_casteljau_subdivision_a.pdf}
+		\label{fig:de_casteljau_subdivision_a}
+	}
+	\subfloat[Right spline subdivision.] {
+		\includegraphics[width=0.48\textwidth]{./fig/geogebra/de_casteljau_subdivision_b.pdf}
+		\label{fig:de_casteljau_subdivision_b}
+	}
+	\caption{
+		Example of subdividing B\'ezier curve using de Casteljau algorithm for $u=0.35$, the left subdivion (a) and the right subdivision (b).
+	}
+\end{figure}
 
 
 
