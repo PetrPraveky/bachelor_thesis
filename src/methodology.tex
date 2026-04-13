@@ -12,8 +12,6 @@ A segmentation image is converted into a binary mask by selecting all pixels who
 
 The result is a binary image in which white pixels, referred to as foreground, are assigned the value true, while black pixels, referred to as background, are assigned the value false. We refer to clusters of white or black pixels as regions. 
 
-% todo obrázek segmentace -> masky -> smoothnuté masky
-
 \subsection{Euclidean Distance Transform}
 
 The Euclidean distance transform, referred to as EDT, assigns to each pixel the Euclidean distance to the nearest pixel of a specified set. This can be used for extracting widths from binary masks.
@@ -116,16 +114,24 @@ Many thinning algorithms have been proposed for various applications, one of the
 
 This algorithm works by performing passes in all four directions and sequentially removes redundant pixels until only the skeleton remains. This results in the skeleton being offset by 1 pixel from center, but this error is insignificant and does not negatively affect the final result. 
 
-Additional advantage to its 1-pixel width, is that if foreground region of binary mask is touching image boundary, the algorithm will not create substantial gap between first point of the skeleton and side of the image. For example Zhang-Suen algorithm does not have this feature and it can result in unrealistic rivers or roads.
+Disadvantage of skeletonization algorithms is that they are sensitive to binary mask "corners". As the algorithm creates skeleton to be in the middle, when some section of the foreground region is sharper, it can create branch towards this corner. This can be resolved by smoothing the binary mask before performing skeletonization. Despite the mask slightly changing shape due to the smoothing, the general shape of the skeleton is preserved.
 
-% todo obrázek s edge skeletonem
+As seen on~\ref{fig:skeleton_branches_2}, even performing skeletonization on smoothed binary mask can lead to undesirable curving on the skeleton. This level of control can not be achieved by simple binary mask smoothing but other more complex algorithms would be needed. However, this results is acceptable for out application of creating splines, as the user has the option to manually adjust them, if the error is too noticeable.
 
-% todo pseudo kód?
-
-Disadvantage of skeletonization algorithms is that they are sensitive to binary mask "corners". As the algorithm creates skeleton to be in the middle, when some section of the foreground region is sharper, it can create branch towards this corner. This can be resolved by smoothing the binary mask before performing skeletonization.
-
-% todo ukázat ten branch ze skeletonu
-% todo ukázat ten brach ze skeletonu po smoothování
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Skeletonization performed on binary mask] {
+		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binarymask_skeleton_branches_1.png}
+		\label{fig:skeleton_branches_1}
+	}
+	\subfloat[Skeletonization performed on smoothed binary mask] {
+		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binarymask_skeleton_branches_2.png}
+		\label{fig:skeleton_branches_2}
+	}
+	\caption{
+		Example of resulting binary mask skeleton without (a) smoothing and with smoothing (b). The gray area is the binary mask, either initial or smoothed. Smoothing was performed with $\sigma = 15.0$ and threshold $-1.2$.
+	}
+\end{figure}
 
 \subsection{Contour Extraction of Area Features}
 
