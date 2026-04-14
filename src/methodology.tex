@@ -34,9 +34,14 @@ where $q$ is a pixel of the binary mask. The distance transform of $f$ is denote
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is a distance function.If $d(p,q)$ is chosen as Euclidean distance, then $\mathcal{D}_f$ is called the Euclidean distance transform.
 
-Applying EDT to the binary mask yields a distance field. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
+Applying EDT to the binary mask yields an unsigned distance field. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
 
-% todo obrázek binarymask -> hodnoty EDT (+ nekonečna?) - tedy distance field
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/generated/edf_sdf/edf_overlay.png}
+	\caption{Visual unsigned distance field of a binary mask.}
+	\label{fig:edf}
+\end{figure}
 
 In our application, this algorithm is used to extract the widths of roads or rivers by computing EDT of foreground pixels. These widths can then be converted to approximate real-world measurements. The precision of this approach depends on the accuracy and resolution of the binary mask.
 
@@ -64,7 +69,12 @@ Signed distance field has the same dimensions as the initial binary mask. The SD
 \end{equation}
 where $p$ is a pixel on binary mask. When $p$ is a foreground pixel, $\mathcal{D}_f(p)$ is positive, while $\mathcal{D}_g(p) = 0$. Conversely, when $p$ is a background pixel, $\mathcal{D}_f(p)=0$ and $\mathcal{D}_g(p)$ in a negative value. 
 
-% todo obrázek binarymask -> hodnoty SDF na té samé masce jako nahoře
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/generated/edf_sdf/sdf_overlay.png}
+	\caption{Visual Signed distance field of a binary mask.}
+	\label{fig:sdf}
+\end{figure}
 
 \subsection{Binary Mask Smoothing}
 
@@ -94,7 +104,33 @@ where $\text{SDF}(x,y)$ is an element of SDF at $x$ and $y$ coordinate, and $0\l
 
 The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, whereas decreasing it expands the foreground region.
 
-% todo obrázek -> smooth -> grown -> eroded
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Binary mask input.] {
+		\includegraphics[width=0.33\textwidth]{./fig/generated/smoothing/binary_mask_upscale.png}
+		\label{fig:binary_mask}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Binary mask smoothing with $\sigma=5.0$.] {
+		\includegraphics[width=0.33\textwidth]{./fig/generated/smoothing/binary_mask_smooth_upscale.png}
+		\label{fig:binary_mask_smooth}
+	}
+	
+	\par\medskip
+	
+	\subfloat[Eroded binary mask with threshold $=1.5$.] {
+		\includegraphics[width=0.33\textwidth]{./fig/generated/smoothing/binary_mask_eroded_upscale.png}
+		\label{fig:binary_mask_eroded}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Expanded binary mask with threshold $=-1.0$.] {
+		\includegraphics[width=0.33\textwidth]{./fig/generated/smoothing/binary_mask_grown_upscale.png}
+		\label{fig:binary_mask_expanded}
+	}
+	\caption{
+		Examples of smoothed binary masks. Input binary mask (a) is smoothed to (b) with Gaussian parameter $\sigma=5.0$. Smoothed binary mask (b) is eroded (c) with threshold $=1.5$ and is expanded (d) with threshold $=-1.0$.
+	}
+\end{figure}
 
 \section{Topology Extraction from Binary Masks} % todo maybe toto přejmenovat idk man
 
@@ -121,11 +157,11 @@ As seen on~\ref{fig:skeleton_branches_2}, even performing skeletonization on smo
 \begin{figure}[htbp]
 	\centering
 	\subfloat[Skeletonization performed on binary mask] {
-		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binarymask_skeleton_branches_1.png}
+		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binary_mask_with_branches_1.png}
 		\label{fig:skeleton_branches_1}
 	}
 	\subfloat[Skeletonization performed on smoothed binary mask] {
-		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binarymask_skeleton_branches_2.png}
+		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binary_mask_with_branches_2.png}
 		\label{fig:skeleton_branches_2}
 	}
 	\caption{
@@ -141,11 +177,9 @@ Used algorithm cycles through every pixel of binary mask. If the pixel is black,
 
 This algorithm skips foreground pixels along the edges of binary mask, as there are no background pixels. To create edge contour we count pixels that are outside the binary mask bounds as background.
 
-% todo obrázek s validní contůrou
-
 This algorithm, although simple, reliably detects contours. There are a few scenarios where strictly 1-pixel width of the contours is not ensured. These scenarios are hard to resolve by algorithm as their outcome can rapidly change the shape or size of the contours. We decided to leave the resolution of these situations to user by giving them tools for manual edit.
 
-% todo obrázek s nevalidní contůrou
+% todo obrázek s validní + nevalidní contůrou
 
 % Caption setup for algorithm 
 \captionsetup[algorithm]{
