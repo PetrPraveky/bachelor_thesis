@@ -1,0 +1,18 @@
+\chapter{Plugin Design and Implementation}
+
+In the previous chapter we described algorithms and methodology, which are used our proposed in Unreal Engine~5 plugin. Is is depended on few official plugins: Water, PCG Framework and PCG Biome Core. Latter two plugins provide build in solutions for procedural generation, and the former provides correct landscape deformation for rivers and lakes.
+
+This plugin is used for creation of environments for simulation in the Flight Forge Simulator. % todo reference here
+Plugin was designed as editor plugin, meaning it uses certain tools and methods that are not available in Unreal Engine runtime. Resulting of this, created environments must be compiled into the simulator, or loaded externally.
+
+\section{Processing Pipeline}
+
+The intention of the processing pipeline was its simplicity. User can easily create landscape splines, rivers, lakes and biomes, without deeper knowledge of the Unreal Engine with relative ease. Many of the plugin functionalities are similar to core Unreal Engine functionalities but simplified or wrapped so they are easier to use.
+
+Plugin expects three input files:
+\begin{itemize}
+	\item Height map - square gray scale image, where the darkest pixel is the lowest point and the brightest pixel is the highest point.
+	\item Segmentation - square RGB image. Each color is classified as different biome or region.
+	\item Segmentation legend - JSON file. Each entry has 3 parameters: Region name, region color and region type. Implemented region types are $\textit{BIOME}$, $\textit{RIVER}$, $\textit{LAKE}$ and $\textit{ROAD}$.
+\end{itemize}
+Reason for four distinct region types is simple, each type corresponds to different Unreal Engine spline.

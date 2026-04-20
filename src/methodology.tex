@@ -277,11 +277,11 @@ After the previous two stages, any remaining unvisited foreground pixels are ass
 
 % todo ukázka jak vypadá celá trasa u end to end, junction to junction a closed contour. To end to end a junction to junction by bylo dobré na stejném/obdobném networku ukázat.
 
-\subsection{Edge Cases}
+% \subsection{Edge Cases}
 
-There are several edge cases that can be handled by the previously described algorithms, but not in an optimal way. In this application, which also relies heavily on user input, we decided not to handle these cases automatically, as doing so may produce unwanted results. Instead, we provide tools that allow the user to resolve such cases manually, for example by stitching two or more polylines together or by closing a polyline.
+% There are several edge cases that can be handled by the previously described algorithms, but not in an optimal way. In this application, which also relies heavily on user input, we decided not to handle these cases automatically, as doing so may produce unwanted results. Instead, we provide tools that allow the user to resolve such cases manually, for example by stitching two or more polylines together or by closing a polyline.
 
-Examples of such edge cases include the previously mentioned junction plateaus and L-shaped corners. Although the algorithm can process these cases, it may create redundant line segments or unnecessary connections. Another encountered edge case arises when a 2-pixel-wide contour is created from a foreground region that is too thin. This may result in many short line segments and in a polyline that is not closed.
+% Examples of such edge cases include the previously mentioned junction plateaus and L-shaped corners. Although the algorithm can process these cases, it may create redundant line segments or unnecessary connections. Another encountered edge case arises when a 2-pixel-wide contour is created from a foreground region that is too thin. This may result in many short line segments and in a polyline that is not closed.
 
 % todo obrázek L, plateau atd a jak to algoritmus řeší -> tedy asi barvevné spojnice středů?
 
@@ -295,7 +295,7 @@ Polyline stitching is the process of connecting two or more polylines by merging
 
 The proposed algorithm follows a greedy strategy. In each iteration, it considers all endpoints of currently active polylines and finds the closest valid pair whose distance does not exceed the specified threshold. The corresponding polylines are then merged into a new polyline, while one of the original polylines is marked as inactive. This process is repeated until no further valid merge can be found.
 
-Since the algorithm is greedy in nature, it does not guarantee a optimal stitching configuration. Its intended use-case is to stitch two or more polylines into one continuous polyline. 
+%Since the algorithm is greedy in nature, it does not guarantee a optimal stitching configuration. Its intended use-case is to stitch two or more polylines into one continuous polyline. 
 
 {
 	\captionof{algorithm}{Polyline Stitching algorithm}
