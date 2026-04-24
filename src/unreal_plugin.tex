@@ -1,18 +1,51 @@
 \chapter{Plugin Design and Implementation}
 
-In the previous chapter we described algorithms and methodology, which are used our proposed in Unreal Engine~5 plugin. Is is depended on few official plugins: Water, PCG Framework and PCG Biome Core. Latter two plugins provide build in solutions for procedural generation, and the former provides correct landscape deformation for rivers and lakes.
+In the previous chapter, the algorithms and methodology used in the proposed Unreal Engine 5 plugin were described. The plugin depends on several official Unreal Engine plugins, namely Water, PCG Framework, and PCG Biome Core. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes.
 
-This plugin is used for creation of environments for simulation in the Flight Forge Simulator. % todo reference here
-Plugin was designed as editor plugin, meaning it uses certain tools and methods that are not available in Unreal Engine runtime. Resulting of this, created environments must be compiled into the simulator, or loaded externally.
+This plugin is used to create simulation environments for the Flight Forge Simulator. % todo reference here
+It was designed as an editor plugin, which means that it relies on tools and functionality that are not available at Unreal Engine runtime. As a result, the generated environments must either be compiled into the simulator or loaded from external data prepared in advance.
 
 \section{Processing Pipeline}
 
-The intention of the processing pipeline was its simplicity. User can easily create landscape splines, rivers, lakes and biomes, without deeper knowledge of the Unreal Engine with relative ease. Many of the plugin functionalities are similar to core Unreal Engine functionalities but simplified or wrapped so they are easier to use.
+The intention of the processing pipeline was its simplicity. User can easily create landscape splines, rivers, lakes and biomes, without deeper knowledge of the Unreal Engine with relative ease. Many of the provided functions are based on existing Unreal Engine tools, but are simplified or wrapped to make them easier to use.
 
 Plugin expects three input files:
 \begin{itemize}
-	\item Height map - square gray scale image, where the darkest pixel is the lowest point and the brightest pixel is the highest point.
-	\item Segmentation - square RGB image. Each color is classified as different biome or region.
-	\item Segmentation legend - JSON file. Each entry has 3 parameters: Region name, region color and region type. Implemented region types are $\textit{BIOME}$, $\textit{RIVER}$, $\textit{LAKE}$ and $\textit{ROAD}$.
+	\item Height map - a square 16-bit gray scale image, where the darkest pixel corresponds to the lowest elevation and the brightest pixel corresponds the highest elevation.
+	\item Segmentation - a square RGB image in which each color represents different biome or region.
+	\item Segmentation legend - a JSON file in which each entry contains three parameters: region name, region color, and region type. The currently implemented region types are BIOME, RIVER, LAKE, and ROAD. $\textit{BIOME}$, $\textit{RIVER}$, $\textit{LAKE}$ and $\textit{ROAD}$.
 \end{itemize}
-Reason for four distinct region types is simple, each type corresponds to different Unreal Engine spline.
+The distinction between these region types is necessary because each type corresponds to a different generation workflow and a different type of Unreal Engine object.
+
+The user can then create the landscape, landscape splines representing roads, river and lake splines, as well as biome splines with basic control over PCG Biome Core. The plugin provides a fast and accessible workflow for environment creation, resulting in a substantial reduction in the time required to prepare a level. After generation, the user can further refine the result using built-in Unreal Engine tools.
+
+\section{Segmentation Processing}
+
+
+
+\section{Landscape Creation}
+
+This plugin simplifies the process of landscape creation. Its functionality is similar to the built-in Unreal Engine landscape creation workflow. It also includes height map upscaling, but it requires a square-shaped height map. During upscaling, the user can choose the target resolution from a predefined set of valid values. The resolutions used for landscape generation in Unreal Engine 5 must satisfy the following requirements:
+\begin{align}
+	W - 1 &\equiv 0 \pmod{S_Q}\quad, \\
+	H - 1 &\equiv 0 \pmod{S_Q}\quad,
+\end{align}
+where quad size of component $S_Q = N_S \times S_S$, $S_S$ is quad size of one subsection, and $N_S$ is number of subsections. Width and height of the height map are represented as $W$ and $H$.
+
+Upscaling of the landscape height map is performed using bilinear interpolation. For each pixel of the destination height map, the corresponding continuous position in the source height map is computed. Since this position usually lies between four neighboring source pixels, the resulting height value is obtained by interpolating between these four samples according to their relative distances.
+
+The scaling factors are chosen so that the boundary pixels of the source and destination heightmaps remain aligned. After interpolation, the computed value is rounded, clamped to the valid 16-bit range, and stored in the destination heightmap. This produces a smoother result than nearest-neighbor upscaling, although it does not introduce any new terrain detail.
+
+A landscape generated directly from a height map is limited by the minimum and maximum values present in that height map. Consequently, the terrain cannot be deformed above or below this range without additional preprocessing. This becomes problematic when generating rivers and lakes, since these features deform the landscape surface.
+
+This is achieved by rescaling all height values so that the terrain includes a user-defined extension above the highest point and below the lowest point. After this adjustment, the scale in the Z axis is recalculated so that the resulting landscape retains the correct real-world size
+
+The remaining settings are equivalent to those of the built-in landscape creation tool, including position, rotation, scale, and the material assigned to the generated landscape.
+
+% todo obrázek této části pluginu + popisky
+
+\section{Landscape Spline Creation}
+
+\section{River and Lake Spline Creation}
+
+\section{PCG Biome Core and Biome Spline Creation}

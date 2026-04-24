@@ -30,11 +30,11 @@ We define cost function as $f(q)$:
 \end{equation}
 where $q$ is a pixel of the binary mask. The distance transform of $f$ is denoted by $\mathcal{D}_f$ and defined as
 \begin{equation}
-	\mathcal{D}_f(p) = \min_{q\in \mathcal{G}}\left(d(p,q) + f(q)\right),
+	\mathcal{D}_f(p) = \min_{q\in \mathcal{G}}\left(d(p,q) + f(q)\right)\quad,
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is a distance function.If $d(p,q)$ is chosen as Euclidean distance, then $\mathcal{D}_f$ is called the Euclidean distance transform.
 
-Applying EDT to the binary mask yields an unsigned distance field. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
+Applying EDT to the binary mask yields an unsigned distance field, show on figure~\ref{fig:edf}. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
 
 \begin{figure}[htbp]
 	\centering
@@ -59,11 +59,11 @@ First we define distance transform $\mathcal{D}_g$ for background pixels by inve
 \end{equation}
 where $q$ is a pixel of the binary mask. The distance transform of $g$ is denoted by $\mathcal{D}_g$ and defined as
 \begin{equation}
-	\mathcal{D}_g(p) = - \min_{q\in \mathcal{G}}\left(d(p,q) + g(q)\right),
+	\mathcal{D}_g(p) = - \min_{q\in \mathcal{G}}\left(d(p,q) + g(q)\right)\quad,
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is the Euclidean distance.
 
-Signed distance field has the same dimensions as the initial binary mask. The SDF value $v$ at pixel $p$ is defined as the sum of these two distance transforms
+Signed distance field, shown on figure~\ref{fig:sdf}, has the same dimensions as the initial binary mask. The SDF value $v$ at pixel $p$ is defined as the sum of these two distance transforms
 \begin{equation}
 	v = \mathcal{D}_f(p) + \mathcal{D}_g(p),
 \end{equation}
@@ -82,7 +82,7 @@ Binary mask smoothing is achieved by applying Gaussian blur to the computed sign
 
 Gaussian function for two dimensions is defined as
 \begin{equation}
-	G(x,y) = \frac{1}{2\pi\sigma^2}\exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right),
+	G(x,y) = \frac{1}{2\pi\sigma^2}\exp\left(-\frac{x^2 + y^2}{2\sigma^2}\right)\quad,
 \end{equation}
 where parameter $\sigma$ determines the blur strength. Increasing $\sigma$ results in stronger smoothing, while decreasing produces weaker smoothing.
 
@@ -92,17 +92,17 @@ To blur an image $I(x,y)$ we compute its convolution with Gaussian function
 \end{equation}
 In discrete implementation we use kernel of size $(2R + 1)\times(2R+1)$, where $R$ is a radius generally chosen as
 \begin{equation}
-	R = \max\left(1, \lceil 3 \sigma \rceil\right),
+	R = \max\left(1, \lceil 3 \sigma \rceil\right)\quad,
 \end{equation}
 because the value of Gaussian function outside the interval $\left[-3\sigma, +3\sigma\right]$ is relatively small.
 
 If we use computed SDF of binary mask as our image, then we get resulting blurred SDF as
 \begin{equation}
-	\text{SDF}_\text{blurred}(x,y) = \sum_{u = -R}^R \sum_{v = -R}^R \text{SDF}(x - u, y - v)G(u,v),
+	\text{SDF}_\text{blurred}(x,y) = \sum_{u = -R}^R \sum_{v = -R}^R \text{SDF}(x - u, y - v)G(u,v)\quad,
 \end{equation}
 where $\text{SDF}(x,y)$ is an element of SDF at $x$ and $y$ coordinate, and $0\leq x < \text{width}$ and $0 \leq y < \text{height}.$
 
-The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, whereas decreasing it expands the foreground region.
+The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, shown on figure~\ref{fig:binary_mask_eroded}, whereas decreasing it expands the foreground region, shown on figure~\ref{fig:binary_mask_expanded}.
 
 \begin{figure}[htbp]
 	\centering
@@ -360,7 +360,7 @@ In the implementation, an additional iteration limit can be used as a safety mea
 
 Polyline created from binary mask skeleton or contour can have large amount of redundant points, which could hinder subsequent spline interpolation. To solve this, we employ Douglas--Peucker algorithm~\cite{bk_douglas_peucker} for simplifying polylines.
 
-Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examinesall the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point
+Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examines all the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point. Example of reduced polyline by Douglas--Peucker algorithm can be seen on figure~\ref{fig:douglas_peucker}.
 
 \begin{figure}[htbp]
 	\centering
@@ -379,9 +379,9 @@ When the recursion is completed a new polylines is constructed from the points w
 
 In our implementation, we chose to represent splines as a sequence of cubic B\'ezier curves rather than as Hermite curves, which are used internally by Unreal Engine~5. The main reason for this choice is that B\'ezier curves are more convenient for the algorithms introduced later in this chapter. At the same time, a cubic B\'ezier curve can be converted to a Hermite representation in a straightforward manner.
 
-A cubic B\'ezier curve $\mathbf{B}(t)$ is defined by two end points, $\mathbf{P}_0$ and $\mathbf{P}_3$, and two control points, $\mathbf{P}_1$ and $\mathbf{P}_2$. It is given by
+A cubic B\'ezier curve $\mathbf{B}(t)$, shown on figure~\ref{fig:bezier_curve}, is defined by two end points, $\mathbf{P}_0$ and $\mathbf{P}_3$, and two control points, $\mathbf{P}_1$ and $\mathbf{P}_2$. It is given by
 \begin{equation}
-	\mathbf{B}(t) = (1 - t)^3\mathbf{P}_0 + 3(1-t)^2t\mathbf{P}_1 + 3(1-t)t^2\mathbf{P}_2 + t^3\mathbf{P}_3,
+	\mathbf{B}(t) = (1 - t)^3\mathbf{P}_0 + 3(1-t)^2t\mathbf{P}_1 + 3(1-t)t^2\mathbf{P}_2 + t^3\mathbf{P}_3\quad,
 	\label{eq:bezier_curve}
 \end{equation}
 for $t \in [0,1]$.
@@ -393,9 +393,9 @@ for $t \in [0,1]$.
 	\label{fig:bezier_curve}
 \end{figure}
 
-A Hermite curve $\mathbf{H}(t)$ is defined by two end points, $\mathbf{H}_0$ and $\mathbf{H}_1$, and two tangent vectors, $\mathbf{M}_0$ and $\mathbf{M}_1$. It is given by
+A Hermite curve $\mathbf{H}(t)$, shown on figure~\ref{fig:hermite_spline}, is defined by two end points, $\mathbf{H}_0$ and $\mathbf{H}_1$, and two tangent vectors, $\mathbf{M}_0$ and $\mathbf{M}_1$. It is given by
 \begin{equation}
-	\mathbf{H}(t) = (2t^3 - 3t^2 + 1)\mathbf{H}_0 + (t^3 - 2t^2 + t)\mathbf{M}_0 + (-2t^3 + 3t^2)\mathbf{H}_1 + (t^3 - t^2)\mathbf{M}_1,
+	\mathbf{H}(t) = (2t^3 - 3t^2 + 1)\mathbf{H}_0 + (t^3 - 2t^2 + t)\mathbf{M}_0 + (-2t^3 + 3t^2)\mathbf{H}_1 + (t^3 - t^2)\mathbf{M}_1\quad,
 \end{equation}
 for $t \in [0,1]$.
 
@@ -408,10 +408,12 @@ for $t \in [0,1]$.
 
 A Hermite curve defined by end points $\mathbf{H}_0$, $\mathbf{H}_1$ and tangent vectors $\mathbf{M}_0$, $\mathbf{M}_1$ can be constructed from a cubic B\'ezier curve defined by control points $\mathbf{P}_0$, $\mathbf{P}_1$, $\mathbf{P}_2$, and $\mathbf{P}_3$ using the following relationships:
 \begin{align}
-	\mathbf{H}_0 &= \mathbf{P}_0, \\
-	\mathbf{M}_0 &= 3\left(\mathbf{P}_1 - \mathbf{P}_0\right), \\
-	\mathbf{M}_1 &= 3\left(\mathbf{P}_3 - \mathbf{P}_2\right), \\
-	\mathbf{H}_1 &= \mathbf{P}_3.
+	\begin{aligned}
+		\mathbf{H}_0 &= \mathbf{P}_0\quad, \\
+		\mathbf{M}_0 &= 3\left(\mathbf{P}_1 - \mathbf{P}_0\right)\quad, \\
+		\mathbf{M}_1 &= 3\left(\mathbf{P}_3 - \mathbf{P}_2\right)\quad, \\
+		\mathbf{H}_1 &= \mathbf{P}_3.
+	\end{aligned}
 \end{align}
 
 \subsection{Catmull--Rom Spline Construction}
@@ -420,10 +422,10 @@ To interpolate spline through points of a polyline, we employed a Catmull--Rom s
 
 We used a class of parameterization described in~\cite{bk_catmull_rom_parameterization} of Catmull--Rom spline. Let the knot sequence satisfy
 \begin{equation}
-	t_{k+1} = t_k + \left\lVert \mathbf{P}_{k+1} - \mathbf{P}_k \right\rVert^\alpha,
+	t_{k+1} = t_k + \left\lVert \mathbf{P}_{k+1} - \mathbf{P}_k \right\rVert^\alpha\quad,
 	\label{eq:catmull_rom_knot}
 \end{equation}
-where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal.
+where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal. Example of spline interpolation through polyline defined by points $\mathbf{P_0}$ to $\mathbf{P_5}$ can be seen on figure~\ref{fig:catmull_rom}.
 
 In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
 
@@ -435,11 +437,13 @@ In our implementation, we use $\alpha = 0.5$, which corresponds to the centripet
 \end{figure}
 
 As follows from the definition, a Catmull--Rom spline segment is constructed from four points, $\mathbf{P}_0$ to $\mathbf{P}_3$, and produces a curve segment between $\mathbf{P}_1$ and $\mathbf{P}_2$. For an open polyline, this means that the spline would not naturally interpolate the first and the last point of the polyline. To resolve this issue, we introduce auxiliary end points defined as
-\begin{align}
-	\mathbf{P}_{-1} &= 2\mathbf{P}_0 - \mathbf{P}_1, \\
-	\mathbf{P}_{n+1} &= 2\mathbf{P}_n - \mathbf{P}_{n-1},
-\end{align}
-where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$.
+\begin{equation}
+	\begin{aligned}
+		\mathbf{P}_{-1} &= 2\mathbf{P}_0 - \mathbf{P}_1\quad, \\
+		\mathbf{P}_{n+1} &= 2\mathbf{P}_n - \mathbf{P}_{n-1}\quad,
+	\end{aligned}
+\end{equation}
+where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Example of such extension can be seen on figure~\ref{fig:catmull_rom_extension}.
 
 \begin{figure}[htbp]
 	\centering
@@ -460,24 +464,30 @@ A drawback of this endpoint extension is that it may produce undesirable shapes 
 The knot sequence in Equation~\eqref{eq:catmull_rom_knot} determines the parameter spacing between interpolation points. Unlike the Hermite or B\'ezier formulations, it does not directly provide a polynomial expression of the curve segment. However, this parameterization can be used to construct equivalent Hermite or B\'ezier representations of the same curve segment.
 
 The B\'ezier curve representation of a Catmull--Rom spline segment can be computed directly from the four defining points, $\mathbf{P}_0$ to $\mathbf{P}_3$. If the B\'ezier curve is defined by control points $\mathbf{B}_0$ to $\mathbf{B}_3$, the relationship is given by~\cite{bk_catmull_rom_bezier}
-\begin{align}
-	\mathbf{B}_0 &= \mathbf{P}_1, \\
-	\mathbf{B}_1 &= \frac{d_1^{2\alpha}\mathbf{P}_2 - d_2^{2\alpha}\mathbf{P}_0 + \left(2d_1^{2\alpha} + 3d_1^\alpha d_2^\alpha + d_2^{2\alpha}\right)\mathbf{P}_1}{3d_1^\alpha\left(d_1^\alpha + d_2^\alpha\right)}, \\
-	\mathbf{B}_2 &= \frac{d_3^{2\alpha}\mathbf{P}_1 - d_2^{2\alpha}\mathbf{P}_3 + \left(2d_3^{2\alpha} + 3d_3^\alpha d_2^\alpha + d_2^{2\alpha}\right)\mathbf{P}_2}{3d_3^\alpha\left(d_3^\alpha + d_2^\alpha\right)}, \\
-	\mathbf{B}_3 &= \mathbf{P}_2,
-\end{align}
+\begin{equation}
+	\begin{aligned}
+		\mathbf{B}_0 &= \mathbf{P}_1\quad, \\
+		\mathbf{B}_1 &= \frac{d_1^{2\alpha}\mathbf{P}_2 - d_2^{2\alpha}\mathbf{P}_0 + \left(2d_1^{2\alpha} + 3d_1^\alpha d_2^\alpha + d_2^{2\alpha}\right)\mathbf{P}_1}{3d_1^\alpha\left(d_1^\alpha + d_2^\alpha\right)}\quad, \\
+		\mathbf{B}_2 &= \frac{d_3^{2\alpha}\mathbf{P}_1 - d_2^{2\alpha}\mathbf{P}_3 + \left(2d_3^{2\alpha} + 3d_3^\alpha d_2^\alpha + d_2^{2\alpha}\right)\mathbf{P}_2}{3d_3^\alpha\left(d_3^\alpha + d_2^\alpha\right)}\quad, \\
+		\mathbf{B}_3 &= \mathbf{P}_2\quad,
+	\end{aligned}
+\end{equation}
 where $d_1$, $d_2$, and $d_3$ are defined as
-\begin{align}
-	d_1 &= \left\lVert \mathbf{P}_1 - \mathbf{P}_0 \right\rVert, \\
-	d_2 &= \left\lVert \mathbf{P}_2 - \mathbf{P}_1 \right\rVert, \\
-	d_3 &= \left\lVert \mathbf{P}_3 - \mathbf{P}_2 \right\rVert,
-\end{align}
+\begin{equation}
+	\begin{aligned}
+		d_1 &= \left\lVert \mathbf{P}_1 - \mathbf{P}_0 \right\rVert\quad, \\
+		d_2 &= \left\lVert \mathbf{P}_2 - \mathbf{P}_1 \right\rVert\quad, \\
+		d_3 &= \left\lVert \mathbf{P}_3 - \mathbf{P}_2 \right\rVert\quad,
+	\end{aligned}
+\end{equation}
 and $\left\lVert \cdot \right\rVert$ denotes the Euclidean norm. The knot intervals corresponding to the distances $d_1$, $d_2$, and $d_3$ satisfy
-\begin{align}
-	t_1 - t_0 &= d_1^\alpha, \\
-	t_2 - t_1 &= d_2^\alpha, \\
-	t_3 - t_2 &= d_3^\alpha.
-\end{align}
+\begin{equation}
+	\begin{aligned}
+		t_1 - t_0 &= d_1^\alpha\quad, \\
+		t_2 - t_1 &= d_2^\alpha\quad, \\
+		t_3 - t_2 &= d_3^\alpha.
+	\end{aligned}
+\end{equation}
 
 \subsection{Curve Subdivision Using de Casteljau's Algorithm}
 
@@ -487,17 +497,17 @@ B\'ezier curve can be constructed recursively by using de Casteljau's algorithm.
 
 Let cubic B\'ezier curve $\mathbf{B}(t)$ be defined by four control points $\mathbf{P}_0$ to $\mathbf{P}_3$ and $t \in \left[0,1\right]$. De Casteljau's algorithm for cubic B\'ezier curve $\mathbf{B}$ works by performing three steps. For parameter $u \in \left[0,1\right]$ it creates points
 \begin{equation}
-	\mathbf{Q}_i = (\mathbf{P}_{i+1} - \mathbf{P}_i)u + \mathbf{P}_i,
+	\mathbf{Q}_i = (\mathbf{P}_{i+1} - \mathbf{P}_i)u + \mathbf{P}_i\quad,
 \end{equation}
 for $i = 0,1,2$. Point $\mathbf{Q}_i$ is a point on a line connecting control points $\mathbf{P}_i$ an $\mathbf{P}_{i+1}$. Then it creates another points
 \begin{equation}
-	\mathbf{R}_j = (\mathbf{Q}_{j+1} - \mathbf{Q}_j)u + \mathbf{Q}_j,
+	\mathbf{R}_j = (\mathbf{Q}_{j+1} - \mathbf{Q}_j)u + \mathbf{Q}_j\quad,
 \end{equation}
 for $j = 0,1$. Similarly as with $\mathbf{Q}_i$, point $\mathbf{R}_j$ is a point on a line connecting points $\mathbf{Q}_{j}$ and $\mathbf{Q}_{j+1}$. Final point is constructed on a line between $\mathbf{R}_0$ and $\mathbf{R}_1$ as
 \begin{equation}
 	\mathbf{S} = (\mathbf{R}_1 - \mathbf{R}_0)u + \mathbf{R}_0.
 \end{equation}
-Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. 
+Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. Algorithm is visualized on figure\ref{fig:de_casteljau}
 
 \begin{figure}[htbp]
 	\centering
@@ -506,7 +516,7 @@ Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal t
 	\label{fig:de_casteljau}
 \end{figure}
 
-We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in~\ref{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in~\ref{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
+We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in figure~\ref{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in figure~\ref{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
 
 \begin{figure}[htbp]
 	\centering
