@@ -1,4 +1,5 @@
 \chapter{Methodology}
+\label{chap:methodology}
 
 % todo změnit názvy jako unreal engine features s přesnou definicí, cotoe
 
@@ -14,7 +15,7 @@ The result is a binary image in which white pixels, referred to as foreground, a
 
 \subsection{Euclidean Distance Transform}
 
-The Euclidean distance transform, referred to as EDT, assigns to each pixel the Euclidean distance to the nearest pixel of a specified set. This can be used for extracting widths from binary masks.
+\ac{EDT} assigns to each pixel the Euclidean distance to the nearest pixel of a specified set. This can be used for extracting widths from binary masks.
 
 In our implementation, the cost function $f$ is chosen so that distances are computed from foreground pixels to the nearest background pixel. This is determined by which pixels are assigned the values $0$ and $\infty$ in the cost function.
 
@@ -34,20 +35,20 @@ where $q$ is a pixel of the binary mask. The distance transform of $f$ is denote
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is a distance function.If $d(p,q)$ is chosen as Euclidean distance, then $\mathcal{D}_f$ is called the Euclidean distance transform.
 
-Applying EDT to the binary mask yields an unsigned distance field, show on figure~\ref{fig:edf}. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
+Applying \ac{EDT} to the binary mask yields an unsigned distance field, show on figure~\ref{fig:edf}. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/generated/edf_sdf/edf_overlay.png}
-	\caption{Visual unsigned distance field of a binary mask.}
+	\caption{Visualization of unsigned distance field of a binary mask.}
 	\label{fig:edf}
 \end{figure}
 
-In our application, this algorithm is used to extract the widths of roads or rivers by computing EDT of foreground pixels. These widths can then be converted to approximate real-world measurements. The precision of this approach depends on the accuracy and resolution of the binary mask.
+In our application, this algorithm is used to extract the widths of roads or rivers by computing \ac{EDT} of foreground pixels. These widths can then be converted to approximate real-world measurements. The precision of this approach depends on the accuracy and resolution of the binary mask.
 
 \subsection{Signed Distance Field}
 
-Signed distance field, or SDF, is a field in which the value corresponding to each pixel of binary mask represents the distance from that pixel to the nearest boundary between foreground and background region. Unlike the unsigned distance field, the SDF stores meaningful values on both sides of the foreground boundary. To differentiate between the two colors, we denote the distances of background pixels as negative.
+\ac{SDF}, is a field in which the value corresponding to each pixel of binary mask represents the distance from that pixel to the nearest boundary between foreground and background region. Unlike the unsigned distance field, the \ac{SDF} stores meaningful values on both sides of the foreground boundary. To differentiate between the two colors, we denote the distances of background pixels as negative.
 
 First we define distance transform $\mathcal{D}_g$ for background pixels by inverting the cost function, so we compute distances of black pixel to a white pixel. The cost function $g(q)$ is
 \begin{equation}
@@ -63,16 +64,16 @@ where $q$ is a pixel of the binary mask. The distance transform of $g$ is denote
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is the Euclidean distance.
 
-Signed distance field, shown on figure~\ref{fig:sdf}, has the same dimensions as the initial binary mask. The SDF value $v$ at pixel $p$ is defined as the sum of these two distance transforms
+Signed distance field, shown on figure~\ref{fig:sdf}, has the same dimensions as the initial binary mask. The \ac{SDF} value $v$ at pixel $p$ is defined as the sum of these two distance transforms
 \begin{equation}
 	v = \mathcal{D}_f(p) + \mathcal{D}_g(p),
 \end{equation}
 where $p$ is a pixel on binary mask. When $p$ is a foreground pixel, $\mathcal{D}_f(p)$ is positive, while $\mathcal{D}_g(p) = 0$. Conversely, when $p$ is a background pixel, $\mathcal{D}_f(p)=0$ and $\mathcal{D}_g(p)$ in a negative value. 
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/generated/edf_sdf/sdf_overlay.png}
-	\caption{Visual Signed distance field of a binary mask.}
+	\caption{Visualization of signed distance field of a binary mask.}
 	\label{fig:sdf}
 \end{figure}
 
@@ -96,15 +97,15 @@ In discrete implementation we use kernel of size $(2R + 1)\times(2R+1)$, where $
 \end{equation}
 because the value of Gaussian function outside the interval $\left[-3\sigma, +3\sigma\right]$ is relatively small.
 
-If we use computed SDF of binary mask as our image, then we get resulting blurred SDF as
+If we use computed \ac{SDF} of binary mask as our image, then we get resulting blurred \ac{SDF} as
 \begin{equation}
 	\text{SDF}_\text{blurred}(x,y) = \sum_{u = -R}^R \sum_{v = -R}^R \text{SDF}(x - u, y - v)G(u,v)\quad,
 \end{equation}
-where $\text{SDF}(x,y)$ is an element of SDF at $x$ and $y$ coordinate, and $0\leq x < \text{width}$ and $0 \leq y < \text{height}.$
+where $\text{SDF}(x,y)$ is an element of \ac{SDF} at $x$ and $y$ coordinate, and $0\leq x < \text{width}$ and $0 \leq y < \text{height}.$
 
 The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, shown on figure~\ref{fig:binary_mask_eroded}, whereas decreasing it expands the foreground region, shown on figure~\ref{fig:binary_mask_expanded}.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\subfloat[Binary mask input.] {
 		\includegraphics[width=0.33\textwidth]{./fig/generated/smoothing/binary_mask_upscale.png}
@@ -154,7 +155,7 @@ Disadvantage of skeletonization algorithms is that they are sensitive to binary 
 
 As seen on~\ref{fig:skeleton_branches_2}, even performing skeletonization on smoothed binary mask can lead to undesirable curving on the skeleton. This level of control can not be achieved by simple binary mask smoothing but other more complex algorithms would be needed. However, this results is acceptable for out application of creating splines, as the user has the option to manually adjust them, if the error is too noticeable.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\subfloat[Skeletonization performed on binary mask] {
 		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binary_mask_with_branches_1.png}
@@ -362,7 +363,7 @@ Polyline created from binary mask skeleton or contour can have large amount of r
 
 Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examines all the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point. Example of reduced polyline by Douglas--Peucker algorithm can be seen on figure~\ref{fig:douglas_peucker}.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./fig/geogebra/douglas_peucker.pdf}
 	\caption{Visual example of Douglas--Peucker algorithm. Initial polyline is drawn in gray dotted line, final polyline is black. Blue rectangles are visualization of parameter $\epsilon$.}
@@ -386,7 +387,7 @@ A cubic B\'ezier curve $\mathbf{B}(t)$, shown on figure~\ref{fig:bezier_curve}, 
 \end{equation}
 for $t \in [0,1]$.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/bezier_curve.pdf}
 	\caption{Example of cubic B\'ezier curve constructed from four control points.}
@@ -399,7 +400,7 @@ A Hermite curve $\mathbf{H}(t)$, shown on figure~\ref{fig:hermite_spline}, is de
 \end{equation}
 for $t \in [0,1]$.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/hermite_spline.pdf}
 	\caption{Example of Hermite spline constructed from two points and two tangent vectors.}
@@ -429,7 +430,7 @@ where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterizat
 
 In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./fig/geogebra/catmull_rom.pdf}
 	\caption{Example of spline interpolation by Catmull--Rom spline. Points $\mathbf{B}_1,\mathbf{B}_2,\mathbf{C}_1,\mathbf{C}_2,\mathbf{D}_1,\mathbf{D}_2$ are corresponding control points for B\'ezier curve.}
@@ -445,7 +446,7 @@ As follows from the definition, a Catmull--Rom spline segment is constructed fro
 \end{equation}
 where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Example of such extension can be seen on figure~\ref{fig:catmull_rom_extension}.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/catmull_rom_edge.pdf}
 	\caption{Example of Catmull--Rom endpoint extension.}
@@ -454,7 +455,7 @@ where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Examp
 
 A drawback of this endpoint extension is that it may produce undesirable shapes when the polyline forms a sharp turn near the boundary. As shown in Fig.~\ref{fig:catmull_rom_extension_edgecase}, the first spline segment is constructed from the points $\mathbf{P}_{-1}, \mathbf{P}_0, \mathbf{P}_1$, and $\mathbf{P}_2$. Since $\mathbf{P}_{-1}$ is defined to be collinear with $\mathbf{P}_0$ and $\mathbf{P}_1$, the tangent of the segment between $\mathbf{P}_0$ and $\mathbf{P}_1$ at $\mathbf{P}_0$ is aligned with the line passing through these points. As a result, the curve segment is pulled in the tangent direction, which may lead to an unnatural shape near the endpoint. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.4\textwidth]{./fig/geogebra/catmull_rom_edgecase.pdf}
 	\caption{Example of Catmull--Rom endpoint extension sharp curve.}
@@ -509,7 +510,7 @@ for $j = 0,1$. Similarly as with $\mathbf{Q}_i$, point $\mathbf{R}_j$ is a point
 \end{equation}
 Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. Algorithm is visualized on figure\ref{fig:de_casteljau}
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/de_casteljau.pdf}
 	\caption{Visual example of de Casteljau algorithm for $u=0.35$.}
@@ -518,7 +519,7 @@ Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal t
 
 We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in figure~\ref{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in figure~\ref{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\subfloat[Left spline subdivision.] {
 		\includegraphics[width=0.48\textwidth]{./fig/geogebra/de_casteljau_subdivision_a.pdf}

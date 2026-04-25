@@ -1,6 +1,7 @@
 \chapter{Plugin Design and Implementation}
+\label{chap:ue_plugin}
 
-In the previous chapter, the algorithms and methodology used in the proposed Unreal Engine 5 plugin were described. The plugin depends on several official Unreal Engine plugins, namely Water, PCG Framework, and PCG Biome Core. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes.
+In the previous chapter, the algorithms and methodology used in the proposed Unreal Engine 5 plugin were described. The plugin depends on several official Unreal Engine plugins, namely Water, \ac{PCG} Framework, and \ac{PCG} Biome Core. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes.
 
 This plugin is used to create simulation environments for the Flight Forge Simulator. % todo reference here
 It was designed as an editor plugin, which means that it relies on tools and functionality that are not available at Unreal Engine runtime. As a result, the generated environments must either be compiled into the simulator or loaded from external data prepared in advance.
@@ -17,19 +18,28 @@ Plugin expects three input files:
 \end{itemize}
 The distinction between these region types is necessary because each type corresponds to a different generation workflow and a different type of Unreal Engine object.
 
-The user can then create the landscape, landscape splines representing roads, river and lake splines, as well as biome splines with basic control over PCG Biome Core. The plugin provides a fast and accessible workflow for environment creation, resulting in a substantial reduction in the time required to prepare a level. After generation, the user can further refine the result using built-in Unreal Engine tools.
+The user can then create the landscape, landscape splines representing roads, river and lake splines, as well as biome splines with basic control over \ac{PCG} Biome Core. The plugin provides a fast and accessible workflow for environment creation, resulting in a substantial reduction in the time required to prepare a level. After generation, the user can further refine the result using built-in Unreal Engine tools.
 
-\section{Segmentation Processing}
+The plugin is organized into several pages, each corresponding to a specific workflow within Unreal Engine. These pages are:
+\begin{itemize}
+	\item \textbf{Startup page} - loading of all input files.
+	\item \textbf{Landscape page} - creation of a landscape from a height map.
+	\item \textbf{Road spline page} - creation of landscape splines for roads.
+	\item \textbf{Water body page} - creation of river and lake splines.
+	\item \textbf{Biome page} - creation of \ac{PCG} Biome Core objects as well as biome splines.
+\end{itemize}
 
-
+The Road Spline, Water Body, and Biome pages share a common part of the processing pipeline, namely segmentation processing and spline calculation.
 
 \section{Landscape Creation}
 
 This plugin simplifies the process of landscape creation. Its functionality is similar to the built-in Unreal Engine landscape creation workflow. It also includes height map upscaling, but it requires a square-shaped height map. During upscaling, the user can choose the target resolution from a predefined set of valid values. The resolutions used for landscape generation in Unreal Engine 5 must satisfy the following requirements:
-\begin{align}
-	W - 1 &\equiv 0 \pmod{S_Q}\quad, \\
-	H - 1 &\equiv 0 \pmod{S_Q}\quad,
-\end{align}
+\begin{equation}
+	\begin{aligned}
+		W - 1 &\equiv 0 \pmod{S_Q}\quad, \\
+		H - 1 &\equiv 0 \pmod{S_Q}\quad,
+	\end{aligned}
+\end{equation}
 where quad size of component $S_Q = N_S \times S_S$, $S_S$ is quad size of one subsection, and $N_S$ is number of subsections. Width and height of the height map are represented as $W$ and $H$.
 
 Upscaling of the landscape height map is performed using bilinear interpolation. For each pixel of the destination height map, the corresponding continuous position in the source height map is computed. Since this position usually lies between four neighboring source pixels, the resulting height value is obtained by interpolating between these four samples according to their relative distances.
@@ -40,12 +50,44 @@ A landscape generated directly from a height map is limited by the minimum and m
 
 This is achieved by rescaling all height values so that the terrain includes a user-defined extension above the highest point and below the lowest point. After this adjustment, the scale in the Z axis is recalculated so that the resulting landscape retains the correct real-world size
 
-The remaining settings are equivalent to those of the built-in landscape creation tool, including position, rotation, scale, and the material assigned to the generated landscape.
+The remaining settings are equivalent to those of the built-in landscape creation tool, including position, rotation, scale, and the material assigned to the generated landscape. Figure~\ref{fig:landscape_page} shows the landscape page of the developed plugin.
 
-% todo obrázek této části pluginu + popisky
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{./fig/screenshots/landscape_page.png}
+	\caption{Landscape page of the plugin user interface. The page allows user to upscale landscape height map, set landscape properties and material, and landscape creation.}
+	\label{fig:landscape_page}
+\end{figure}
 
-\section{Landscape Spline Creation}
+\section{Segmentation Processing}
 
-\section{River and Lake Spline Creation}
+The initial step in the creation of all spline-based Unreal Engine objects is segmentation processing. In this step, the plugin applies the algorithms introduced in Chapter~\ref{chap:methodology} to process the segmentation image. This includes segmentation-based binary mask extraction, optional binary mask smoothing, polyline simplification using the Douglas--Peucker algorithm, and subsequent spline interpolation. The plugin also provides spline preview functionality, allowing the user to inspect the generated splines and adjust the parameters accordingly.
 
-\section{PCG Biome Core and Biome Spline Creation}
+% todo obrázek ukázky toho preview?
+
+Figure~\ref{fig:segmentation_page_part} shows the segmentation-processing part shared by all plugin pages that generate splines. In addition to global processing parameters, the plugin also allows individual adjustment of already generated spline segments, as shown in Fig.~\ref{fig:segmentation_page_part_individual}.
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Segmentation page part of all splines.] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/segmentation_page_part.png}
+		\label{fig:segmentation_page_part}
+	}
+	\subfloat[Segmentation page part of individual spline segment.] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/segmentation_page_part_individual.png}
+		\label{fig:segmentation_page_part_individual}
+	}
+	\caption{
+		Figure (a) shows plugin user interface page part of spline creation from segmentation image. Figure (b) shows plugin user interface page part of individual spline segment adjustment based on already generated splines in (a).
+	}
+\end{figure}
+
+\section{Unreal Engine Spline Creation Pages}
+
+\subsection{Landscape Spline Creation}
+
+Landscape spline creation page, as its main purpose is to create roads, is named road page. 
+
+\subsection{River and Lake Spline Creation}
+
+\subsection{PCG Biome Core and Biome Spline Creation}
