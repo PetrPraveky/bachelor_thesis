@@ -14,7 +14,7 @@ Plugin expects three input files:
 \begin{itemize}
 	\item Height map - a square 16-bit gray scale image, where the darkest pixel corresponds to the lowest elevation and the brightest pixel corresponds the highest elevation.
 	\item Segmentation - a square RGB image in which each color represents different biome or region.
-	\item Segmentation legend - a JSON file in which each entry contains three parameters: region name, region color, and region type. The currently implemented region types are BIOME, RIVER, LAKE, and ROAD. $\textit{BIOME}$, $\textit{RIVER}$, $\textit{LAKE}$ and $\textit{ROAD}$.
+	\item Segmentation legend - a JSON file in which each entry contains three parameters: region name, region color, and region type. The currently implemented region types are BIOME, RIVER, LAKE, and ROAD.
 \end{itemize}
 The distinction between these region types is necessary because each type corresponds to a different generation workflow and a different type of Unreal Engine object.
 
@@ -59,14 +59,6 @@ The remaining settings are equivalent to those of the built-in landscape creatio
 	\label{fig:landscape_page}
 \end{figure}
 
-\section{Segmentation Processing}
-
-The initial step in the creation of all spline-based Unreal Engine objects is segmentation processing. In this step, the plugin applies the algorithms introduced in Chapter~\ref{chap:methodology} to process the segmentation image. This includes segmentation-based binary mask extraction, optional binary mask smoothing, polyline simplification using the Douglas--Peucker algorithm, and subsequent spline interpolation. The plugin also provides spline preview functionality, allowing the user to inspect the generated splines and adjust the parameters accordingly.
-
-% todo obrázek ukázky toho preview?
-
-Figure~\ref{fig:segmentation_page_part} shows the segmentation-processing part shared by all plugin pages that generate splines. In addition to global processing parameters, the plugin also allows individual adjustment of already generated spline segments, as shown in Fig.~\ref{fig:segmentation_page_part_individual}.
-
 \begin{figure}[htbp]
 	\centering
 	\subfloat[Segmentation page part of all splines.] {
@@ -82,11 +74,38 @@ Figure~\ref{fig:segmentation_page_part} shows the segmentation-processing part s
 	}
 \end{figure}
 
+\section{Segmentation Processing}
+\label{sec:segmentation_processing}
+
+The initial step in the creation of all spline-based Unreal Engine objects is segmentation processing. In this step, the plugin applies the algorithms introduced in Chapter~\ref{chap:methodology} to process the segmentation image. This includes segmentation-based binary mask extraction, optional binary mask smoothing, polyline simplification using the Douglas--Peucker algorithm, and subsequent spline interpolation. The plugin also provides spline preview functionality, allowing the user to inspect the generated splines and adjust the parameters accordingly.
+
+% todo obrázek ukázky toho preview?
+
+Figure~\ref{fig:segmentation_page_part} shows the segmentation-processing part shared by all plugin pages that generate splines. In addition to global processing parameters, the plugin also allows individual adjustment of already generated spline segments, as shown in Fig.~\ref{fig:segmentation_page_part_individual}.
+
+
 \section{Unreal Engine Spline Creation Pages}
 
 \subsection{Landscape Spline Creation}
 
-Landscape spline creation page, as its main purpose is to create roads, is named road page. 
+Purpose of this page is to create landscape spline on previously created landscape. All regions with type ROAD will be shown in the user interface as a list of collapsed areas, as seen on figure~\ref{fig:road_page}. Each collapsed area contains segmentation processing part and landscape spline creation part.
+
+Segmentation processing part was described in detail in section~\ref{sec:segmentation_processing}. 
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Landscape spline page with two segmentation regions of type ROAD: Road and Railroad.] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/road_page.png}
+		\label{fig:road_page}
+	}
+	\subfloat[Landscape spline page for individual spline] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/road_page_individual.png}
+		\label{fig:road_page_individual}
+	}
+	\caption{
+		Figure (a) shows plugin user interface page part of spline creation from segmentation image. Figure (b) shows plugin user interface page part of individual spline segment adjustment based on already generated splines in (a).
+	}
+\end{figure}
 
 \subsection{River and Lake Spline Creation}
 
