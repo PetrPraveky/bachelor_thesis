@@ -1,8 +1,6 @@
 \chapter{Methodology}
 \label{chap:methodology}
 
-% todo změnit názvy jako unreal engine features s přesnou definicí, cotoe
-
 \section{Binary Mask Processing}
 
 \subsection{Binary Mask Creation}
@@ -37,7 +35,7 @@ where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}
 
 Applying \ac{EDT} to the binary mask yields an unsigned distance field, show on figure~\ref{fig:edf}. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/generated/edf_sdf/edf_overlay.png}
 	\caption{Visualization of unsigned distance field of a binary mask.}
@@ -70,7 +68,7 @@ Signed distance field, shown on figure~\ref{fig:sdf}, has the same dimensions as
 \end{equation}
 where $p$ is a pixel on binary mask. When $p$ is a foreground pixel, $\mathcal{D}_f(p)$ is positive, while $\mathcal{D}_g(p) = 0$. Conversely, when $p$ is a background pixel, $\mathcal{D}_f(p)=0$ and $\mathcal{D}_g(p)$ in a negative value. 
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/generated/edf_sdf/sdf_overlay.png}
 	\caption{Visualization of signed distance field of a binary mask.}
@@ -105,7 +103,7 @@ where $\text{SDF}(x,y)$ is an element of \ac{SDF} at $x$ and $y$ coordinate, and
 
 The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, shown on figure~\ref{fig:binary_mask_eroded}, whereas decreasing it expands the foreground region, shown on figure~\ref{fig:binary_mask_expanded}.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\subfloat[Binary mask input.] {
 		\includegraphics[width=0.33\textwidth]{./fig/generated/smoothing/binary_mask_upscale.png}
@@ -133,7 +131,7 @@ The user is given option to adjust both Gaussian blur parameter $\sigma$ the thr
 	}
 \end{figure}
 
-\section{Topology Extraction from Binary Masks} % todo maybe toto přejmenovat idk man
+\section{Topology Extraction from Binary Masks}
 
 \subsection{Binary Mask Skeletonization}
 
@@ -145,9 +143,14 @@ Thinning of a binary mask, referred to as skeletonization, is a process of remov
 	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground region is touching the side.
 \end{itemize}
 
-Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo-Hall algorithm~\cite{bk_guo_hall} and Zhang-Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu}, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. 
+Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo--Hall algorithm~\cite{bk_guo_hall} and Zhang--Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu} made by Jain and Kumar, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. Difference between each of those algorithms can be seen on Fig.~\ref{fig:zhang_hall_kumar}.
 
-% todo IMAGE GUO-HALL X ZHANG-SUEN X JAIN-KUMAR
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.9\textwidth]{./fig/screenshots/zhang_hall_kumar.png}
+	\caption{Comparison between different skeletonization algorithms. Image was taken from \cite{bk_jain_himanshu}. From top to bottom: (a) Original pattern, (b) Guo-Hall algorithm, (c) Zhang--Suen algorithm, (d) Jain--Kumar algorithm.}
+	\label{fig:zhang_hall_kumar}
+\end{figure}
 
 This algorithm works by performing passes in all four directions and sequentially removes redundant pixels until only the skeleton remains. This results in the skeleton being offset by 1 pixel from center, but this error is insignificant and does not negatively affect the final result. 
 
@@ -155,7 +158,7 @@ Disadvantage of skeletonization algorithms is that they are sensitive to binary 
 
 As seen on~\ref{fig:skeleton_branches_2}, even performing skeletonization on smoothed binary mask can lead to undesirable curving on the skeleton. This level of control can not be achieved by simple binary mask smoothing but other more complex algorithms would be needed. However, this results is acceptable for out application of creating splines, as the user has the option to manually adjust them, if the error is too noticeable.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\subfloat[Skeletonization performed on binary mask] {
 		\includegraphics[width=0.48\textwidth]{./fig/generated/skeleton_branches/binary_mask_with_branches_1.png}
@@ -180,8 +183,6 @@ This algorithm skips foreground pixels along the edges of binary mask, as there 
 
 This algorithm, although simple, reliably detects contours. There are a few scenarios where strictly 1-pixel width of the contours is not ensured. These scenarios are hard to resolve by algorithm as their outcome can rapidly change the shape or size of the contours. We decided to leave the resolution of these situations to user by giving them tools for manual edit.
 
-% todo obrázek s validní + nevalidní contůrou
-
 % Caption setup for algorithm 
 \captionsetup[algorithm]{
 	labelfont=bf,
@@ -202,15 +203,11 @@ Special case of polyline is a closed polyline. A polyline is considered closed i
 	\mathbf{P}_0 = \mathbf{P}_n.
 \end{equation}
 
-% todo ukázka polyline na obrázku xd
-
 \subsection{Pixel Classification}
 
 To create polylines we need to classify topological pixels, determining whether a pixel is an endpoint or a junction. We use a simple classification method based on counting the number of foreground pixels in the 8-neighborhood of the examined pixel.
 
 If the number of foreground neighbors is one, the pixel is classified as an endpoint, since it is connected to only one neighboring pixel. If the number is two, the pixel is considered a regular polyline pixel connecting two neighboring pixels.
-
-% todo obrazek endpointu, normální, junction, a abomination jako plateau or other.
 
 A junction pixel has three or more foreground neighbors, although in typical cases it has exactly three. If four or more foreground neighbors are present, this may indicate a more complex local structure, such as a plateau or another shape that can complicate polyline extraction.
 
@@ -231,40 +228,40 @@ When tracing from a current pixel, the algorithm examines its 8-neighborhood and
 % todo nevím jestli teda ho udělat, ale bylo by to asi dobré. 
 
 {
-	\captionof{algorithm}{Topology tracing into ordered polylines}
-	\begin{algorithmic}[1]
-		\Procedure{Trace\_Topology}{$\textit{foreground\_pixels}, \textit{endpoints}, \textit{junctions}$}
-		\State $\textit{visited} \gets$ map initialized to false
-		\State $\textit{result} \gets$ empty list of polylines
-		\State
-		\ForAll{$\textit{endpoint} \textbf{ from } \textit{endpoints}$}
-			\If{$\text{not } \textit{visited}\text{[ }\textit{endpoint}\text{ ]}$}
-				\State trace a polyline starting at $\textit{endpoint}$
-				\State stop when another endpoint or a junction is reached
-				\State mark regular traced pixels as visited
-				\State add the resulting polyline to $\textit{result}$
-			\EndIf
+\captionof{algorithm}{Topology tracing into ordered polylines}
+\begin{algorithmic}[1]
+	\Procedure{Trace\_Topology}{$\textit{foreground\_pixels}, \textit{endpoints}, \textit{junctions}$}
+	\State $\textit{visited} \gets$ map initialized to false
+	\State $\textit{result} \gets$ empty list of polylines
+	\State
+	\ForAll{$\textit{endpoint} \textbf{ from } \textit{endpoints}$}
+		\If{$\text{not } \textit{visited}\text{[ }\textit{endpoint}\text{ ]}$}
+			\State trace a polyline starting at $\textit{endpoint}$
+			\State stop when another endpoint or a junction is reached
+			\State mark regular traced pixels as visited
+			\State add the resulting polyline to $\textit{result}$
+		\EndIf
+	\EndFor
+	\State
+	\ForAll{$\textit{junction} \textbf{ from } \textit{junctions}$}
+		\ForAll{unvisited foreground neighbors $\textbf{of } \textit{junction}$}
+			\State trace a polyline starting at $\textit{junction}$
+			\State stop when another junction is reached
+			\State mark regular traced pixels as visited
+			\State add the resulting polyline to $\textit{result}$
 		\EndFor
-		\State
-		\ForAll{$\textit{junction} \textbf{ from } \textit{junctions}$}
-			\ForAll{unvisited foreground neighbors $\textbf{of } \textit{junction}$}
-				\State trace a polyline starting at $\textit{junction}$
-				\State stop when another junction is reached
-				\State mark regular traced pixels as visited
-				\State add the resulting polyline to $\textit{result}$
-			\EndFor
-		\EndFor
-		\State
-		\ForAll{unvisited foreground pixels $p$}
-		\State trace a closed contour starting at $p$
-		\State continue until no unvisited foreground neighbor exists
-		\State append the starting point again to represent closure
-		\State add the resulting polyline to $\textit{result}$
-		\EndFor
-		\State
-		\Return $\textit{result}$
-		\EndProcedure
-	\end{algorithmic}
+	\EndFor
+	\State
+	\ForAll{unvisited foreground pixels $p$}
+	\State trace a closed contour starting at $p$
+	\State continue until no unvisited foreground neighbor exists
+	\State append the starting point again to represent closure
+	\State add the resulting polyline to $\textit{result}$
+	\EndFor
+	\State
+	\Return $\textit{result}$
+	\EndProcedure
+\end{algorithmic}
 }
 
 \paragraph{Tracing from endpoints.}
@@ -299,58 +296,58 @@ The proposed algorithm follows a greedy strategy. In each iteration, it consider
 %Since the algorithm is greedy in nature, it does not guarantee a optimal stitching configuration. Its intended use-case is to stitch two or more polylines into one continuous polyline. 
 
 {
-	\captionof{algorithm}{Polyline Stitching algorithm}
-	\begin{algorithmic}[1]
-		\Procedure{Stitch\_Polylines}{$\textit{polylines},\textit{max\_distance}$}
-		\State $\textit{resulting\_polylines} \gets \text{initialize empty list}$
-		\State $\textit{used\_polylines} \gets \text{initialize list with false values, length of }\textit{polylines}$
-		\State $\textit{polyline\_ends} \gets \text{initialize empty list of points}$
-		\State
-		\While {true}
-			\State $\textit{polyline\_ends}\text{.reset()}$
-			\State
-			\For {$\textit{polyline}\textbf{ from }\textit{polylines}$}
-				\If {$\text{not }\textit{used\_polylines}\text{[ }\textit{polyline}\text{ ]}$}
-					\State $\textit{polyline\_ends}\text{.add(}\textit{polyline}\text{.first}\text{)}$
-					\State $\textit{polyline\_ends}\text{.add(}\textit{polyline}\text{.last}\text{)}$
-				\EndIf
-			\EndFor
-			\State
-			\State $\textit{best\_pair} \gets \text{iniitalize}$
-			\State $\textit{best\_distance} = \infty$
-			\For {$\textit{first\_end}\textbf{ from }\textit{polyline\_ends}$}
-				\For {$\textit{second\_end}\textbf{ from }\textit{polyline\_ends}$}
-					\If {$\text{if both ends are not from the same polyline}$} 
-						\State $\textit{distance} = \left|\left|\textit{first\_end} - \textit{second\_end}\right|\right|$
-						\State
-						\If {$\textit{distance} \leq \textit{max\_distance}$ and $\textit{distance} < \textit{best\_distance}$}
-							\State $\textit{best\_pair} = (\textit{first\_end}, \textit{second\_end})$
-							\State $\textit{best\_distance} = \textit{distance}$
-						\EndIf
-					\EndIf
-				\EndFor
-			\EndFor
-			\If {$\textit{best\_pair}\text{ not chosen}$}
-				\State $\textbf{break}$
-			\EndIf
-			\State
-			\State construct $\textit{merged\_polyline}$ from the $\textit{best\_pair}$
-			\State reverse one polyline if necessary
-			\State remove the duplicate connecting endpoint
-			\State
-			\State $\textit{polylines}\text{[ index of }\textit{best\_pair}\text{.first ]} = \textit{merged\_polyline}$
-			\State $\textit{used\_polylines}\text{[ }\textit{best\_pair}\text{.second}\text{]} = \text{true}$
-		\EndWhile
+\captionof{algorithm}{Polyline Stitching algorithm}
+\begin{algorithmic}[1]
+	\Procedure{Stitch\_Polylines}{$\textit{polylines},\textit{max\_distance}$}
+	\State $\textit{resulting\_polylines} \gets \text{initialize empty list}$
+	\State $\textit{used\_polylines} \gets \text{initialize list with false values, length of }\textit{polylines}$
+	\State $\textit{polyline\_ends} \gets \text{initialize empty list of points}$
+	\State
+	\While {true}
+		\State $\textit{polyline\_ends}\text{.reset()}$
 		\State
 		\For {$\textit{polyline}\textbf{ from }\textit{polylines}$}
-			\If {$\text{not }\textit{used\_polylines}\text{[ }\textit{polyline}\text{]}$}
-				\State $\textit{resulting\_polylines}\text{.add(}\textit{polyline}\text{)}$
+			\If {$\text{not }\textit{used\_polylines}\text{[ }\textit{polyline}\text{ ]}$}
+				\State $\textit{polyline\_ends}\text{.add(}\textit{polyline}\text{.first}\text{)}$
+				\State $\textit{polyline\_ends}\text{.add(}\textit{polyline}\text{.last}\text{)}$
 			\EndIf
 		\EndFor
 		\State
-		\Return $\textit{resulting\_polylines}$
-		\EndProcedure
-	\end{algorithmic}
+		\State $\textit{best\_pair} \gets \text{iniitalize}$
+		\State $\textit{best\_distance} = \infty$
+		\For {$\textit{first\_end}\textbf{ from }\textit{polyline\_ends}$}
+			\For {$\textit{second\_end}\textbf{ from }\textit{polyline\_ends}$}
+				\If {$\text{if both ends are not from the same polyline}$} 
+					\State $\textit{distance} = \left|\left|\textit{first\_end} - \textit{second\_end}\right|\right|$
+					\State
+					\If {$\textit{distance} \leq \textit{max\_distance}$ and $\textit{distance} < \textit{best\_distance}$}
+						\State $\textit{best\_pair} = (\textit{first\_end}, \textit{second\_end})$
+						\State $\textit{best\_distance} = \textit{distance}$
+					\EndIf
+				\EndIf
+			\EndFor
+		\EndFor
+		\If {$\textit{best\_pair}\text{ not chosen}$}
+			\State $\textbf{break}$
+		\EndIf
+		\State
+		\State construct $\textit{merged\_polyline}$ from the $\textit{best\_pair}$
+		\State reverse one polyline if necessary
+		\State remove the duplicate connecting endpoint
+		\State
+		\State $\textit{polylines}\text{[ index of }\textit{best\_pair}\text{.first ]} = \textit{merged\_polyline}$
+		\State $\textit{used\_polylines}\text{[ }\textit{best\_pair}\text{.second}\text{]} = \text{true}$
+	\EndWhile
+	\State
+	\For {$\textit{polyline}\textbf{ from }\textit{polylines}$}
+		\If {$\text{not }\textit{used\_polylines}\text{[ }\textit{polyline}\text{]}$}
+			\State $\textit{resulting\_polylines}\text{.add(}\textit{polyline}\text{)}$
+		\EndIf
+	\EndFor
+	\State
+	\Return $\textit{resulting\_polylines}$
+	\EndProcedure
+\end{algorithmic}
 }
 
 Depending on which endpoints are connected, one of the polylines may need to be reversed before merging in order to preserve a consistent point ordering. When polylines are merged, one of the connecting endpoints must be removed, as it would result in a duplicate point and other algorithms may not work as intended.
@@ -363,7 +360,7 @@ Polyline created from binary mask skeleton or contour can have large amount of r
 
 Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examines all the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point. Example of reduced polyline by Douglas--Peucker algorithm can be seen on figure~\ref{fig:douglas_peucker}.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./fig/geogebra/douglas_peucker.pdf}
 	\caption{Visual example of Douglas--Peucker algorithm. Initial polyline is drawn in gray dotted line, final polyline is black. Blue rectangles are visualization of parameter $\epsilon$.}
@@ -387,7 +384,7 @@ A cubic B\'ezier curve $\mathbf{B}(t)$, shown on figure~\ref{fig:bezier_curve}, 
 \end{equation}
 for $t \in [0,1]$.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/bezier_curve.pdf}
 	\caption{Example of cubic B\'ezier curve constructed from four control points.}
@@ -400,7 +397,7 @@ A Hermite curve $\mathbf{H}(t)$, shown on figure~\ref{fig:hermite_spline}, is de
 \end{equation}
 for $t \in [0,1]$.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/hermite_spline.pdf}
 	\caption{Example of Hermite spline constructed from two points and two tangent vectors.}
@@ -430,7 +427,7 @@ where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterizat
 
 In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./fig/geogebra/catmull_rom.pdf}
 	\caption{Example of spline interpolation by Catmull--Rom spline. Points $\mathbf{B}_1,\mathbf{B}_2,\mathbf{C}_1,\mathbf{C}_2,\mathbf{D}_1,\mathbf{D}_2$ are corresponding control points for B\'ezier curve.}
@@ -446,7 +443,7 @@ As follows from the definition, a Catmull--Rom spline segment is constructed fro
 \end{equation}
 where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Example of such extension can be seen on figure~\ref{fig:catmull_rom_extension}.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/catmull_rom_edge.pdf}
 	\caption{Example of Catmull--Rom endpoint extension.}
@@ -455,7 +452,7 @@ where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Examp
 
 A drawback of this endpoint extension is that it may produce undesirable shapes when the polyline forms a sharp turn near the boundary. As shown in Fig.~\ref{fig:catmull_rom_extension_edgecase}, the first spline segment is constructed from the points $\mathbf{P}_{-1}, \mathbf{P}_0, \mathbf{P}_1$, and $\mathbf{P}_2$. Since $\mathbf{P}_{-1}$ is defined to be collinear with $\mathbf{P}_0$ and $\mathbf{P}_1$, the tangent of the segment between $\mathbf{P}_0$ and $\mathbf{P}_1$ at $\mathbf{P}_0$ is aligned with the line passing through these points. As a result, the curve segment is pulled in the tangent direction, which may lead to an unnatural shape near the endpoint. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.4\textwidth]{./fig/geogebra/catmull_rom_edgecase.pdf}
 	\caption{Example of Catmull--Rom endpoint extension sharp curve.}
@@ -491,10 +488,11 @@ and $\left\lVert \cdot \right\rVert$ denotes the Euclidean norm. The knot interv
 \end{equation}
 
 \subsection{Curve Subdivision Using de Casteljau's Algorithm}
+\label{sec:de_casteljau}
 
 % todo reference na numerickou stabilitu
 
-B\'ezier curve can be constructed recursively by using de Casteljau's algorithm. This method is numerically more stable, than using polynomial definition~\eqref{eq:bezier_curve}. Anotherimportant use case of this algorithm is subdividing B\'ezier curve into two segments and subsequently getting correct their control points.
+B\'ezier curve can be constructed recursively by using de Casteljau's algorithm. This method is numerically more stable, than using polynomial definition~\eqref{eq:bezier_curve}. Another important use case of this algorithm is subdividing B\'ezier curve into two segments and subsequently getting correct their control points.
 
 Let cubic B\'ezier curve $\mathbf{B}(t)$ be defined by four control points $\mathbf{P}_0$ to $\mathbf{P}_3$ and $t \in \left[0,1\right]$. De Casteljau's algorithm for cubic B\'ezier curve $\mathbf{B}$ works by performing three steps. For parameter $u \in \left[0,1\right]$ it creates points
 \begin{equation}
@@ -510,7 +508,7 @@ for $j = 0,1$. Similarly as with $\mathbf{Q}_i$, point $\mathbf{R}_j$ is a point
 \end{equation}
 Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. Algorithm is visualized on figure\ref{fig:de_casteljau}
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/de_casteljau.pdf}
 	\caption{Visual example of de Casteljau algorithm for $u=0.35$.}
@@ -519,7 +517,7 @@ Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal t
 
 We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in figure~\ref{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in figure~\ref{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
 
-\begin{figure}[h]
+\begin{figure}[htbp]
 	\centering
 	\subfloat[Left spline subdivision.] {
 		\includegraphics[width=0.48\textwidth]{./fig/geogebra/de_casteljau_subdivision_a.pdf}

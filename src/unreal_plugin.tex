@@ -1,10 +1,9 @@
 \chapter{Plugin Design and Implementation}
 \label{chap:ue_plugin}
 
-In the previous chapter, the algorithms and methodology used in the proposed Unreal Engine 5 plugin were described. The plugin depends on several official Unreal Engine plugins, namely Water, \ac{PCG} Framework, and \ac{PCG} Biome Core. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes.
+In the previous chapter, the algorithms and methodology used in the proposed Unreal Engine 5 plugin were described. The plugin depends on several official Unreal Engine plugins, namely Water, \ac{PCG} Framework~\cite{bk_pcg}, and \ac{PCG} Biome Core~\cite{bk_biome_core}. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes. Plugin was build in Unreal Engine~5 version 5.4.4.
 
-This plugin is used to create simulation environments for the Flight Forge Simulator. % todo reference here
-It was designed as an editor plugin, which means that it relies on tools and functionality that are not available at Unreal Engine runtime. As a result, the generated environments must either be compiled into the simulator or loaded from external data prepared in advance.
+This plugin is used to create simulation environments for the Flight Forge Simulator~\cite{bk_flight_forge}. It was designed as an editor plugin, which means that it relies on tools and functionality that are not available at Unreal Engine runtime. As a result, the generated environments must either be compiled into the simulator or loaded from external data prepared in advance.
 
 \section{Processing Pipeline}
 
@@ -79,18 +78,53 @@ The remaining settings are equivalent to those of the built-in landscape creatio
 
 The initial step in the creation of all spline-based Unreal Engine objects is segmentation processing. In this step, the plugin applies the algorithms introduced in Chapter~\ref{chap:methodology} to process the segmentation image. This includes segmentation-based binary mask extraction, optional binary mask smoothing, polyline simplification using the Douglas--Peucker algorithm, and subsequent spline interpolation. The plugin also provides spline preview functionality, allowing the user to inspect the generated splines and adjust the parameters accordingly.
 
-% todo obrázek ukázky toho preview?
+The 2D spline, calculated either from a binary mask skeleton or from a contour, is then transformed from binary mask space to landscape space. This process is performed using the Hermite spline representation rather than the B\'ezier representation, since Hermite splines are more convenient for this type of transformation, as seen on Fig.~\ref{fig:spline_preview}.
+
+To transform a point from image space to landscape space, the $x$ and $y$ coordinates are first mapped according to Algorithm~\ref{alg:transform_point}.
+
+{
+\captionof{algorithm}{Point transformation from image space to landscape space}
+\begin{algorithmic}[1]
+	\Procedure{Transform\_Point}{$\textit{image\_point}, \textit{image}, \textit{landscape}$}
+	\State $min_x$, $min_y$, $max_x$, $max_y = \textit{landscape}.\text{get\_extends()}$
+	\State
+	\State $u = \textit{image\_point}.\text{x} / (\textit{image}.\text{width}-1)$
+	\State $v = \textit{image\_point}.\text{y} / (\textit{image}.\text{height}-1)$
+	\State
+	\State $q_x = min_x + (max_x - min_x)\cdot u$
+	\State $q_y = min_y + (max_y - min_y)\cdot v$
+	\State
+	\Return $(q_x, q_y, 0)$
+	\EndProcedure
+	\label{alg:transform_point}
+\end{algorithmic}
+}
+
+After this planar transformation, a ray parallel to the $z$-axis is cast from the transformed point. The intersection of this ray with the landscape determines the final spline point in landscape space. In Unreal Engine~5, this operation also provides the landscape normal vector at the point of intersection.
+
+The landscape normal vector $\mathbf{n}_i$ is then used to project the Hermite tangent vector $\mathbf{M}_i$ onto the tangent plane of the landscape surface. For each spline point, the corrected tangent is computed as
+\begin{equation}
+	\mathbf{M}_i' = \mathbf{M}_i - (\mathbf{M}_i \cdot \mathbf{n}_i)\mathbf{n}_i,
+\end{equation}
+where $i \in \{0,1\}$ for a single Hermite curve segment.
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/screenshots/spline_preview_example.png}
+	\caption{Example of spline preview functionality.}
+	\label{fig:spline_preview}
+\end{figure}
 
 Figure~\ref{fig:segmentation_page_part} shows the segmentation-processing part shared by all plugin pages that generate splines. In addition to global processing parameters, the plugin also allows individual adjustment of already generated spline segments, as shown in Fig.~\ref{fig:segmentation_page_part_individual}.
-
 
 \section{Unreal Engine Spline Creation Pages}
 
 \subsection{Landscape Spline Creation}
+\label{sec:landscape_spline_creation}
 
-Purpose of this page is to create landscape spline on previously created landscape. All regions with type ROAD will be shown in the user interface as a list of collapsed areas, as seen on figure~\ref{fig:road_page}. Each collapsed area contains segmentation processing part and landscape spline creation part.
+The purpose of this page is to create landscape splines on a previously generated landscape. All segmentation regions of type ROAD are displayed in the user interface as a list of collapsible sections, as shown in Fig.~\ref{fig:road_page}. Each section contains a segmentation processing part and a landscape spline creation part. User can adjust individual generated splines as shown in Fig.~\ref{fig:road_page_individual}.
 
-Segmentation processing part was described in detail in section~\ref{sec:segmentation_processing}. 
+The segmentation processing part was described in detail in Section~\ref{sec:segmentation_processing}. In addition, the page contains a landscape spline configuration part. In this section, the user can specify the width of the landscape spline and its falloff distance. The width can be determined automatically from the \ac{EDT} of the binary mask skeleton or specified manually by the user. The falloff distance defines the distance from the spline at which landscape deformation begins.
 
 \begin{figure}[htbp]
 	\centering
@@ -103,10 +137,187 @@ Segmentation processing part was described in detail in section~\ref{sec:segment
 		\label{fig:road_page_individual}
 	}
 	\caption{
-		Figure (a) shows plugin user interface page part of spline creation from segmentation image. Figure (b) shows plugin user interface page part of individual spline segment adjustment based on already generated splines in (a).
+		Figure (a) shows plugin user interface page part of a landscape spline creation from segmentation image. Figure (b) shows plugin user interface page part of individual spline segment adjustment based on already generated splines in (a).
 	}
+\end{figure}
+
+The user can enable an option to smooth the landscape spline with respect to the terrain surface. This operation uses de Casteljau's algorithm, described in Section~\ref{sec:de_casteljau}. The smoothing algorithm evaluates the midpoint of a spline segment and casts a ray parallel to the $z$-axis in order to find its intersection with the landscape. If the distance between the original midpoint and the intersection point exceeds a user-defined threshold, the spline segment is split into two segments and the midpoint is projected onto the landscape as described in Section~\ref{sec:segmentation_processing}. This process is repeated until the distance for every segment is below the specified threshold. Result of such smoothing can be seen on Fig.~\ref{fig:spline_smoothing}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/screenshots/spline_smoothing_example.png}
+	\caption{Example of spline smoothing with respect to the terrain functionality. Blue spline is the initial and unsmoothed. Yellow spline is smoothed with respect to the terrain. Yellow rectangles are added points of the spline to achieve this result.}
+	\label{fig:spline_smoothing}
+\end{figure}
+
+In Unreal Engine~5, version 5.5 and later, automatic deformation of the landscape according to the landscape spline is supported through the C++ \ac{API}. However, this project was developed in Unreal Engine~5 version 5.4.4, where this functionality was not available. For this reason, the plugin provides the user with detailed instructions for performing this step manually.
+
+Result of landscape spline generation with landscape deformation is seen on Fig.~\ref{fig:landscape_spline_example}. It can be observed that small manual adjustments are needed. % todo idk about this, maybe dopsat něco?
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/screenshots/landscape_spline_example.png}
+	\caption{Example of generated landscape spline from binary mask skeleton.}
+	\label{fig:landscape_spline_example}
 \end{figure}
 
 \subsection{River and Lake Spline Creation}
 
-\subsection{PCG Biome Core and Biome Spline Creation}
+The purpose of this page is to create river splines or lake splines on a previously generated landscape. Landscape height extension is recommended, as the depth of rivers and lakes can extend bellow the lowest point of the landscape. Similarly to section~\ref{sec:landscape_spline_creation}, all segmentation regions of types RIVER or LAKE are displayed in the user interface as a list of collapsible sections, shown in Fig.~\ref{fig:water_body_page}. Each section contains a segmentation processing part and a water body part. User can adjust individual generated splines as shown in Fig.~\ref{fig:water_body_page_individual}.
+
+Water zone must be created before user can create water body splines. Water zone encapsulates the entire landscape and its vertical extends. This object is needed for correct creation of water body splines and its usage. Before calculating splines it is recommended to perform binary mask smoothing, otherwise many spline branches can be generated, as seen in Fig.~\ref{fig:skeleton_branches_1}. If the binary mask skeleton or outline is generated fragmented even after the binary mask is smoothed out, user can choose to stitch many spline segments together to form one continuous spline or to close opened splines.
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Water body page with region of type RIVER: River.] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/water_page.png}
+		\label{fig:water_body_page}
+	}
+	\subfloat[Water body page for individual spline] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/water_page_individual.png}
+		\label{fig:water_body_page_individual}
+	}
+	\caption{
+		Figure (a) shows plugin user interface page part of a water body spline creation from segmentation image. Figure (b) shows plugin user interface page part of individual spline segment adjustment based on already generated splines in (a).
+	}
+\end{figure}
+
+The % todo this
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/screenshots/river_spline_example.png}
+	\caption{Example of generated river spline from binary mask skeleton. At each point of the spline different width, calculated using \ac{EDT}, was chosen giving more accurate and realistic look of the river.}
+	\label{fig:river_spline_example}
+\end{figure}
+
+\subsection{PCG Biome Core Creation}
+
+The Biome page follows the workflow of the \ac{PCG} Biome Core system~\cite{bk_biome_core}. The user first needs to create a \ac{PCG} Biome Core object. The plugin user interface exposes only the most relevant settings, such as the \ac{PCG} Graph, which controls how the procedural generation is performed, the biome blending range, and the cache cell size. Increasing the cache cell size may help reduce the performance overhead of the \ac{PCG} Biome Core system.
+
+The plugin user interface also provides controls for managing the \ac{PCG} Biome Core object. The user can manually generate, update, or refresh biomes, as well as clean up previously generated biome instances. When working with large and complex biomes, it is recommended to disable automatic refresh of the \ac{PCG} Biome Core object, since frequent updates may overload the Unreal Engine editor and lead to instability. The available settings are shown in Fig.~\ref{fig:biome_page}.
+
+The \ac{PCG} Biome Core system is computationally demanding, especially in terms of memory usage. During testing, large biome setups occasionally led to instability of the Unreal Engine~5 editor. Several mitigation strategies were tested, but none of them significantly improved the observed behavior.  % todo dopsat toto idk
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Biome page with two segmentation regions of type BIOME: Forest and Quarry.] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/biome_page.png}
+		\label{fig:biome_page}
+	}
+	\subfloat[Biome page for individual spline] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/biome_page_individual.png}
+		\label{fig:biome_page_individual}
+	}
+	\caption{
+		Figure (a) shows plugin user interface page part of a biome spline creation from segmentation image. Figure (b) shows plugin user interface page part of individual spline segment adjustment based on already generated splines in (a).
+	}
+\end{figure}
+
+\subsection{Biome Spline Creation}
+
+Biome spline generation requires a Biome Definition and one or more Biome Assets, as shown in Fig.~\ref{fig:biome_page_individual}. Both are based on the Data Asset type in Unreal Engine~5 and are provided by the \ac{PCG} Biome Core plugin. The Biome Definition specifies the name and color of the biome. This step is required by all biome construction methods available in the \ac{PCG} Biome Core plugin, and it is especially important when biomes are generated from a biome mask. For biome spline generation alone, however, the biome name and color are not used directly. Generated biome using biome spline can be seen on Fig.~\ref{fig:biome_spline_example}.
+
+A Biome Asset defines how the biome should be generated. This Data Asset contains settings for the static meshes used in the biome, such as trees and rocks, together with their configuration, probability weights, collision settings, the generator represented by a \ac{PCG} Graph, optional child biome assets, and other parameters. Child Biome Assets work similarly to their parent assets, but only within a limited distance from the parent asset instances. This makes it possible to create more realistic groupings of generated objects, such as a tree surrounded by saplings, as on Fig.~\ref{fig:pcg_exmaple_2} or a large rock surrounded by smaller stones, as on Fig.~\ref{fig:pcg_exmaple_1}.
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Tree surrounded by saplings generated through \ac{PCG} and Biome Asset.] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/pcg_example_2.png}
+		\label{fig:pcg_exmaple_2}
+	}
+	\subfloat[Rock surrounded by stones generated through \ac{PCG} and Biome Asset] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/pcg_example_1.png}
+		\label{fig:pcg_exmaple_1}
+	}
+	\caption{
+		Example of \ac{PCG} generation through Biome Asset of tree surrounded by saplings (a) and rock surrounded by stones (b).
+	}
+\end{figure}
+
+
+The generating \ac{PCG} Graph directly affects how biome objects are distributed. This functionality is provided by the \ac{PCG} Framework plugin~\cite{bk_pcg}. A typical \ac{PCG} Graph first generates a large number of random points inside an enclosed area, which in this case is defined by the biome spline. These points are assigned random rotations and scales. The graph then processes the points through a sequence of filters defined either in the \ac{PCG} Graph itself or in the Biome Asset. These filters modify the number of points or their properties. In the final step, static meshes are spawned at the resulting point locations. This allows the user to prepare different mesh placement procedures depending on the intended biome appearance.
+
+% todo ukázka jak vypadá taková pipeline? tedy jak to vypadá postupně, dbg koskty jako pointy, filtraci a pak ty static meshe? můj PCG forest to tam myslím má - idk unreal nefunguje nejde mi to vyrobit jsem zoufalý
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.6\textwidth]{./fig/screenshots/biome_spline_example.png}
+	\caption{Example of generated forest using biome spline in Unreal Engine~5 plugin \ac{PCG} Biome Core.}
+	\label{fig:biome_spline_example}
+\end{figure}
+
+\section{Generated Worlds}
+
+As a proof of concept of this plugin, four different worlds were generated. Environments were chosen to be distinct to showcase what possibilities can this plugin accomplish. All four worlds hat their height map generated from Unreal Engine~5 height map generator  % todo reference here
+and segmentation was done manually. Following four worlds were generated:
+\begin{itemize}
+	\item Desert Oasis - shown on Fig.~\ref{fig:desert_oasis}.
+	\item Étretat Cliffs - cliffs in northern France shown on Fig.~\ref{fig:etretat_cliffs}.
+	\item Grand Canyon - canyon in America shown on Fig.~\ref{fig:grand_canyon}.
+	\item Stu\dh lagil Canyon - canyon in Iceland shown on Fig.~\ref{fig:studlagil_canyon}.
+\end{itemize}
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/desert_oasis_1.png}
+		\label{fig:desert_oasis_1}
+	}
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/desert_oasis_2.png}
+		\label{fig:desert_oasis_2}
+	}
+	\caption{
+		Example world named Desert Oasis generated using by this Unreal Engine~5 plugin.
+	}
+	\label{fig:desert_oasis}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/etretat_cliffs_1.png}
+		\label{fig:etretat_cliffs_1}
+	}
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/etretat_cliffs_2.png}
+		\label{fig:etretat_cliffs_2}
+	}
+	\caption{
+		Example world named Étretat Cliffs generated using by this Unreal Engine~5 plugin.
+	}
+	\label{fig:etretat_cliffs}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/grand_canyon_1.png}
+		\label{fig:grand_canyon_1}
+	}
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/grand_canyon_1.png}
+		\label{fig:grand_canyon_2}
+	}
+	\caption{
+		Example world named Grand Canyon generated using by this Unreal Engine~5 plugin.
+	}
+	\label{fig:grand_canyon}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/studlagil_canyon_1.png}
+		\label{fig:studlagil_canyon_1}
+	}
+	\subfloat[] {
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/studlagil_canyon_2.png}
+		\label{fig:studlagil_canyon_2}
+	}
+	\caption{
+		Example world named Stu\dh lagil Canyon generated using by this Unreal Engine~5 plugin.
+	}
+	\label{fig:studlagil_canyon}
+\end{figure}
