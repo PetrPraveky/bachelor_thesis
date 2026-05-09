@@ -2,24 +2,49 @@
 
 \chapter{Introduction\label{chap:introduction}}
 
-First, introduce the reader to the research topic.
-Start with the most general view and slowly converge to the particular field, sub-field, and the challenges you face.
-You can cite others' work here \cite{baca2021mrs}.
+Virtual environments are increasingly used in simulation, testing, and training scenarios. In the context of \ac{UAV}, simulated worlds make it possible to test navigation, perception, and decision-making methods in controlled conditions before deploying them in the real world. For such simulations to be useful, the environment should contain meaningful spatial structure. Virtual environments can be categorized into indoors and outdoors environments.
 
-\section{Related works}
+Indoors environments are more difficult to generate without the usage of \ac{AI}. For example creating realistic, and more importantly believable, apartment only by using procedural generation algorithms can not be easily achieved. On the other hand, when the neural network is trained on data regarding placement of props in indoors environments, creating non-random scene as a apartment can be done. 
 
-This section should contain related state-of-the-art works and their relation to the author's work.
-We usually cite the original works like this \cite{benallegue2008high}.
-You can also cite multiple papers at once like this \cite{baca2016embedded, baca2021mrs}.
+Outdoors environments are easier to produce via procedural generation algorithms. Many popular games utilize these algorithms to create realistic and believable open world environments. Usage of \ac{AI} in this area is mainly in pre-generation step, or while generating complex sections such as cities, as the usage of standard algorithms is computationally less expensive and results do not differ as much. 
 
-\section{Contributions}
+Creating outdoor environments manually is a time-consuming process. Elements such as terrain, roads, rivers, lakes, and biome areas often have to be placed consistently with the intended layout of the scene. When created manually, this process requires a significant amount of repetitive work and can become difficult to manage for larger environments.
 
-This section should describe the author's contributions to the field of research.
+One way to reduce this workload is to use input data that already describes the desired structure of the environment. Height maps can define the terrain elevation, while segmentation images can describe the placement of different environmental features such as roads, rivers, lakes, forests, or other biome types. However, these image-based representations cannot be used directly as editable objects inside a real-time 3D engine. They first need to be processed and converted into engine-specific structures.
 
-\section{Mathematical notation}
+This thesis focuses on the design and implementation of an Unreal Engine plugin that automates part of this process. The plugin uses height maps and segmentation images to generate the initial structure of a virtual environment. Opposed to autonomous procedural generation this work focuses to giving the user of this plugin the ability to adjust any step of the generation pipeline. 
 
-It is a good practice to define basic mathematical notation in the introduction.
-See \reftab{tab:mathematical_notation} for an example.
+By converting image-based input data into editable Unreal Engine objects, the proposed plugin reduces the amount of manual work required to build the simulation environment while preserving user control over the final result. Such environments can then be used as a basis for simulation scenarios or generation of datasets for evaluating mapping and localization methods.
+
+The implemented plugin is designed with the Flight Forge~\cite{bk_flight_forge} simulation workflow in mind. Its purpose is to support the creation of high-fidelity environments that can later be used for robotic simulation and dataset generation. In this context, the generated worlds may serve as a source of sensor data, such as RGB images or \ac{LiDAR} measurements, together with corresponding ground-truth information.
+
+\section{Related Works}
+
+% todo přepsat toto aby to více souviselo s tím co píšu dole?
+
+Recent advances in development of artificial intelligence have shown promising results regarding generation of unique environments suitable for robotic simulations. Many works specialize in generating environments completely randomly to ensure their uniqueness while other focus on creating real-life environments from publicly available data, such as satellite imagery. 
+
+% todo nějak to co je pod tímto rozdělit do subsekcí 
+% todo nějak zpřeházet pořadí?
+
+Pipeline of the manual creation of different outdoor environments inside Unreal Engine~5 was proposed in this paper~\cite{bk_seg_gen_ue5}. This approach uses hand made landscape and hand drawn RGB biome mask as basis for environment generation. This pipeline does not take road, river, lake or city creation into account, limiting the resulting datasets.
+
+More automated process of generating realistic environment using satellite imagery was proposed in this paper~\cite{bk_satellite_ue5}. Converted satellite data into height map and color mask are used in automated landscape generation with biomes. This approach is highly depended on precision of provided satellite data and user can not create completely random environments. % todo trochu eh
+
+Procedural urban environment generation proposed in these paper~\cite{bk_simworld_robotics_urban},\cite{bk_procedural_urban} is used to train deep neural networks to navigate in such complex environments. Proposed algorithms in both papers follow similar pipeline: road generation, building generation and street element generation. 
+
+Another proposed generator of synthetic datasets is Infinigen~\cite{bk_infinigen_outdoor}. It is a generator that can create infinitely natural environments. As this generator is build on top of Blender, % todo reference here?
+resulting photo-realistic environments comes only as renders, not fully explorable worlds. 
+
+% ^^^ spíše světy | vvv spíše indoor - odstavec pod tím je takovej segway :D
+
+However Infinigen generator is limited to natural scenes. To overcome this limitation, Infinigen Indoors~\cite{bk_infinigen_indoor} was created. In works similarly as Infinigen in creating photo-realistic renders. To create completely unique indoors environments without need of many different props, this generator has the ability to procedurally generate them.
+
+Thanks to the advanced \ac{LLM} and \ac{VLM} generation of realistic environments are possible from simple prompts. Proposed solution in this paper~\cite{bk_3d_generalist} is by utilizing combination of \ac{LLM}, to process the input prompt, and \ac{VLM}, to generate visually appealing environment. 
+
+
+
+\section{Mathematical Notation}
 
 \begin{table*}[!h]
   \scriptsize
