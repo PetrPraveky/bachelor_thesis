@@ -2,13 +2,11 @@
 
 \chapter{Introduction\label{chap:introduction}}
 
-Virtual environments are increasingly used in simulation, testing, and training scenarios. In the context of \ac{UAV}, simulated worlds make it possible to test navigation, perception, and decision-making methods in controlled conditions before deploying them in the real world. For such simulations to be useful, the environment should contain meaningful spatial structure. Virtual environments can be categorized into indoors and outdoors environments.
+Virtual environments are increasingly used in simulation, testing, and training scenarios. In the context of \ac{UAV}, simulated worlds make it possible to test navigation, perception, and decision-making methods in controlled conditions before deploying them in the real world. For such simulations to be useful, the environment should contain meaningful spatial structure.
 
-Indoors environments are more difficult to generate without the usage of \ac{AI}. For example creating realistic, and more importantly believable, apartment only by using procedural generation algorithms can not be easily achieved. On the other hand, when the neural network is trained on data regarding placement of props in indoors environments, creating non-random scene as a apartment can be done. 
+Virtual environments can be broadly categorized into indoor and outdoor environments. Indoor environments often require detailed placement of objects, furniture, and other props in order to appear believable. This can be difficult to achieve using only simple procedural rules, since the resulting scene must respect spatial relationships and common patterns of human-designed spaces. Outdoor environments, on the other hand, are often more suitable for procedural or semi-automatic generation, as their structure can frequently be described using terrain elevation, paths, water bodies, vegetation regions, and other large-scale features.
 
-Outdoors environments are easier to produce via procedural generation algorithms. Many popular games utilize these algorithms to create realistic and believable open world environments. Usage of \ac{AI} in this area is mainly in pre-generation step, or while generating complex sections such as cities, as the usage of standard algorithms is computationally less expensive and results do not differ as much. 
-
-Creating outdoor environments manually is a time-consuming process. Elements such as terrain, roads, rivers, lakes, and biome areas often have to be placed consistently with the intended layout of the scene. When created manually, this process requires a significant amount of repetitive work and can become difficult to manage for larger environments.
+This thesis focuses specifically on the generation of outdoor virtual environments. Creating such environments manually is a time-consuming process. Elements such as terrain, roads, rivers, lakes, and biome areas often have to be placed consistently with the intended layout of the scene. When created manually, this process requires a significant amount of repetitive work and can become difficult to manage for larger environments.
 
 One way to reduce this workload is to use input data that already describes the desired structure of the environment. Height maps can define the terrain elevation, while segmentation images can describe the placement of different environmental features such as roads, rivers, lakes, forests, or other biome types. However, these image-based representations cannot be used directly as editable objects inside a real-time 3D engine. They first need to be processed and converted into engine-specific structures.
 
@@ -20,29 +18,39 @@ The implemented plugin is designed with the Flight Forge~\cite{bk_flight_forge} 
 
 \section{Related Works}
 
-% todo přepsat toto aby to více souviselo s tím co píšu dole?
-
 Recent advances in development of artificial intelligence have shown promising results regarding generation of unique environments suitable for robotic simulations. Many works specialize in generating environments completely randomly to ensure their uniqueness while other focus on creating real-life environments from publicly available data, such as satellite imagery. 
 
-% todo nějak to co je pod tímto rozdělit do subsekcí 
-% todo nějak zpřeházet pořadí?
+\subsection{User Guided Environment Creation}
 
-Pipeline of the manual creation of different outdoor environments inside Unreal Engine~5 was proposed in this paper~\cite{bk_seg_gen_ue5}. This approach uses hand made landscape and hand drawn RGB biome mask as basis for environment generation. This pipeline does not take road, river, lake or city creation into account, limiting the resulting datasets.
+A pipeline for manual creation of outdoor environments in Unreal Engine~5 was proposed in~\cite{bk_seg_gen_ue5}. This approach uses a manually created landscape together with a hand-drawn RGB biome mask as the basis for environment generation. While this gives the user a high degree of control over the final result, it still requires significant manual effort. In addition, the pipeline focuses primarily on biome generation and does not directly address the creation of roads, rivers, lakes, or urban structures, which limits the variety of resulting simulation datasets.
 
-More automated process of generating realistic environment using satellite imagery was proposed in this paper~\cite{bk_satellite_ue5}. Converted satellite data into height map and color mask are used in automated landscape generation with biomes. This approach is highly depended on precision of provided satellite data and user can not create completely random environments. % todo trochu eh
+A method for procedural generation of multi-story buildings with interiors was proposed in~\cite{bk_procedural_building_generation}. The proposed pipeline takes user defined input such as shape of the building, room and floor count and generates three dimensional model of said building. However the algorithm does not take into account placement of furniture and other assets. 
 
-Procedural urban environment generation proposed in these paper~\cite{bk_simworld_robotics_urban},\cite{bk_procedural_urban} is used to train deep neural networks to navigate in such complex environments. Proposed algorithms in both papers follow similar pipeline: road generation, building generation and street element generation. 
+Another user guided based method was proposed in~\cite{bk_procedural_interior_generation}. This approach requires only a user-defined building shape and room definitions. The method first generate two-dimensional floor plan before extending it into three dimensions and adding doorways and windows. A limitation mentioned by the authors an inability to create corridors, unlike the previously discussed method.
 
-Another proposed generator of synthetic datasets is Infinigen~\cite{bk_infinigen_outdoor}. It is a generator that can create infinitely natural environments. As this generator is build on top of Blender, % todo reference here?
-resulting photo-realistic environments comes only as renders, not fully explorable worlds. 
+\subsection{Generation from Real-World Data}
 
-% ^^^ spíše světy | vvv spíše indoor - odstavec pod tím je takovej segway :D
+A more automated process of generating realistic environment using satellite imagery was proposed in~\cite{bk_satellite_ue5}. In this work, satellite data are converted into height map and color mask are used in automated landscape generation with biomes. However, the quality of the generated environment depends heavily on the accuracy and availability of the input satellite data.
 
-However Infinigen generator is limited to natural scenes. To overcome this limitation, Infinigen Indoors~\cite{bk_infinigen_indoor} was created. In works similarly as Infinigen in creating photo-realistic renders. To create completely unique indoors environments without need of many different props, this generator has the ability to procedurally generate them.
+Another procedural generation approach based on satellite imagery was presented in~\cite{bk_procedural_generation_mediterranean}. The proposed method provides a number of input parameters to allow broader control over the generation process, one of which is a satellite image. The satellite image is classified and used to create a more detailed and realistic terrain representation, for example by adding foliage.
 
-Thanks to the advanced \ac{LLM} and \ac{VLM} generation of realistic environments are possible from simple prompts. Proposed solution in this paper~\cite{bk_3d_generalist} is by utilizing combination of \ac{LLM}, to process the input prompt, and \ac{VLM}, to generate visually appealing environment. 
+\subsection{Procedural Synthetic Environment Generation}
 
+A complete procedural terrain generation method was proposed in~\cite{bk_procedural_terrain_gan}. The method uses a \ac{CAN} to procedurally generate satellite images. The generated satellite image, or alternatively an existing satellite image as in the real-world-data-based approaches discussed above, is then used as input to a \ac{CGAN} to generate the corresponding \ac{DEM}. These outputs can be used to define both the shape and the texture of the final terrain. However, the proposed method focuses only on terrain generation and does not populate the environment with elements such as foliage, roads, rivers, or buildings.
 
+Procedural generation has also been used for the creation of urban simulation environments. The methods proposed in~\cite{bk_simworld_robotics_urban,bk_procedural_urban} focus on generating synthetic urban worlds for training navigation and perception models. Proposed pipelines typically consist of road network generation, building placement and street element generation. These approaches are well suited for urban scenarios, but they are less focused on generating natural outdoor environments.
+
+Another notable synthetic dataset generator is Infinigen~\cite{bk_infinigen_outdoor}, which is capable of generating highly diverse natural environments. Infinigen focuses on procedural generation of photorealistic scenes and is designed primarily for synthetic image dataset generation. Since it is built around Blender-based scene generation, its output is more suitable for rendering and dataset creation than for direct use as an editable Unreal Engine simulation environment. This makes it different from approaches that aim to create interactive worlds inside a real-time engine.
+
+The original Infinigen system is focused mainly on natural scenes. To extend this idea to indoor environments, Infinigen Indoors was introduced in~\cite{bk_infinigen_indoor}. This system follows a similar procedural philosophy, but targets indoor scene generation. It is capable of creating rooms, furniture arrangements, and indoor objects procedurally, reducing the need for a large manually prepared asset library.
+
+\subsection{Prompt-Based and Learning-Based Generation}
+
+Recent advances in large language models and vision-language models have introduced a different approach to virtual environment generation. Instead of requiring the user to manually define all generation parameters, these methods allow the desired scene to be described using a high-level text prompt. This makes the generation process more accessible to users, but it also reduces direct control over the exact spatial structure of the resulting environment.
+
+Methods for generation of 3D outdoor environments with features such as biomes, roads and rivers were proposed in~\cite{bk_procedural_content_generation,bk_controllable_procedural_generation}. These methods follow previously mentioned pipelines that consist of creating landscape, populating it with biomes and vegetation, objects and paths. Parameters required for executing these pipelines are converted from user input prompt via \ac{LLM} processing layer.
+
+Method for generating visually coherent 3D indoor environments was proposed in~\cite{bk_3d_generalist}. It combines a \ac{LLM} for prompt interpretation with a \ac{VLM} for refining resulting environment. A limitation of this method is that the assets used to populate the interiors still have to be supplied.
 
 \section{Mathematical Notation}
 
