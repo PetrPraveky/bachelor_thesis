@@ -49,7 +49,7 @@ A landscape generated directly from a height map is limited by the minimum and m
 
 This is achieved by rescaling all height values so that the terrain includes a user-defined extension above the highest point and below the lowest point. After this adjustment, the scale in the Z axis is recalculated so that the resulting landscape retains the correct real-world size
 
-The remaining settings are equivalent to those of the built-in landscape creation tool, including position, rotation, scale, and the material assigned to the generated landscape. Figure~\ref{fig:landscape_page} shows the landscape page of the developed plugin.
+The remaining settings are equivalent to those of the built-in landscape creation tool, including position, rotation, scale, and the material assigned to the generated landscape. Landscape page of the developed plugin is shown on \reffig{fig:landscape_page}.
 
 \begin{figure}[htbp]
 	\centering
@@ -78,9 +78,9 @@ The remaining settings are equivalent to those of the built-in landscape creatio
 
 The initial step in the creation of all spline-based Unreal Engine objects is segmentation processing. In this step, the plugin applies the algorithms introduced in Chapter~\ref{chap:methodology} to process the segmentation image. This includes segmentation-based binary mask extraction, optional binary mask smoothing, polyline simplification using the Douglas--Peucker algorithm, and subsequent spline interpolation. The plugin also provides spline preview functionality, allowing the user to inspect the generated splines and adjust the parameters accordingly.
 
-The 2D spline, calculated either from a binary mask skeleton or from a contour, is then transformed from binary mask space to landscape space. This process is performed using the Hermite spline representation rather than the B\'ezier representation, since Hermite splines are more convenient for this type of transformation, as seen on Fig.~\ref{fig:spline_preview}.
+The 2D spline, calculated either from a binary mask skeleton or from a contour, is then transformed from binary mask space to landscape space. This process is performed using the Hermite spline representation rather than the B\'ezier representation, since Hermite splines are more convenient for this type of transformation, as seen on \reffig{fig:spline_preview}.
 
-To transform a point from image space to landscape space, the $x$ and $y$ coordinates are first mapped according to Algorithm~\ref{alg:transform_point}.
+To transform a point from image space to landscape space, the $x$ and $y$ coordinates are first mapped according to \refalg{alg:transform_point}.
 
 {
 \captionof{algorithm}{Point transformation from image space to landscape space}
@@ -115,16 +115,16 @@ where $i \in \{0,1\}$ for a single Hermite curve segment.
 	\label{fig:spline_preview}
 \end{figure}
 
-Figure~\ref{fig:segmentation_page_part} shows the segmentation-processing part shared by all plugin pages that generate splines. In addition to global processing parameters, the plugin also allows individual adjustment of already generated spline segments, as shown in Fig.~\ref{fig:segmentation_page_part_individual}.
+\reffig{fig:segmentation_page_part} shows the segmentation-processing part shared by all plugin pages that generate splines. In addition to global processing parameters, the plugin also allows individual adjustment of already generated spline segments, as shown in \reffig{fig:segmentation_page_part_individual}.
 
 \section{Unreal Engine Spline Creation Pages}
 
 \subsection{Landscape Spline Creation}
 \label{sec:landscape_spline_creation}
 
-The purpose of this page is to create landscape splines on a previously generated landscape. All segmentation regions of type ROAD are displayed in the user interface as a list of collapsible sections, as shown in Fig.~\ref{fig:road_page}. Each section contains a segmentation processing part and a landscape spline creation part. User can adjust individual generated splines as shown in Fig.~\ref{fig:road_page_individual}.
+The purpose of this page is to create landscape splines on a previously generated landscape. All segmentation regions of type ROAD are displayed in the user interface as a list of collapsible sections, as shown in \reffig{fig:road_page}. Each section contains a segmentation processing part and a landscape spline creation part. User can adjust individual generated splines as shown in \reffig{fig:road_page_individual}.
 
-The segmentation processing part was described in detail in Section~\ref{sec:segmentation_processing}. In addition, the page contains a landscape spline configuration part. In this section, the user can specify the width of the landscape spline and its falloff distance. The width can be determined automatically from the \ac{EDT} of the binary mask skeleton or specified manually by the user. The falloff distance defines the distance from the spline at which landscape deformation begins.
+The segmentation processing part was described in detail in \refsec{sec:segmentation_processing}. In addition, the page contains a landscape spline configuration part. In this section, the user can specify the width of the landscape spline and its falloff distance. The width can be determined automatically from the \ac{EDT} of the binary mask skeleton or specified manually by the user. The falloff distance defines the distance from the spline at which landscape deformation begins.
 
 \begin{figure}[htbp]
 	\centering
@@ -141,7 +141,7 @@ The segmentation processing part was described in detail in Section~\ref{sec:seg
 	}
 \end{figure}
 
-The user can enable an option to smooth the landscape spline with respect to the terrain surface. This operation uses de Casteljau's algorithm, described in Section~\ref{sec:de_casteljau}. The smoothing algorithm evaluates the midpoint of a spline segment and casts a ray parallel to the $z$-axis in order to find its intersection with the landscape. If the distance between the original midpoint and the intersection point exceeds a user-defined threshold, the spline segment is split into two segments and the midpoint is projected onto the landscape as described in Section~\ref{sec:segmentation_processing}. This process is repeated until the distance for every segment is below the specified threshold. Result of such smoothing can be seen on Fig.~\ref{fig:spline_smoothing}
+The user can enable an option to smooth the landscape spline with respect to the terrain surface. This operation uses de Casteljau's algorithm, described in \refsec{sec:de_casteljau}. The smoothing algorithm evaluates the midpoint of a spline segment and casts a ray parallel to the $z$-axis in order to find its intersection with the landscape. If the distance between the original midpoint and the intersection point exceeds a user-defined threshold, the spline segment is split into two segments and the midpoint is projected onto the landscape as described in \refsec{sec:segmentation_processing}. This process is repeated until the distance for every segment is below the specified threshold. Result of such smoothing can be seen on \reffig{fig:spline_smoothing}
 
 \begin{figure}[htbp]
 	\centering
@@ -152,7 +152,7 @@ The user can enable an option to smooth the landscape spline with respect to the
 
 In Unreal Engine~5, version 5.5 and later, automatic deformation of the landscape according to the landscape spline is supported through the C++ \ac{API}. However, this project was developed in Unreal Engine~5 version 5.4.4, where this functionality was not available. For this reason, the plugin provides the user with detailed instructions for performing this step manually.
 
-Result of landscape spline generation with landscape deformation is seen on Fig.~\ref{fig:landscape_spline_example}. It can be observed that small manual adjustments are needed. % todo idk about this, maybe dopsat něco?
+Result of landscape spline generation with landscape deformation is seen on \reffig{fig:landscape_spline_example}. It can be observed that small manual adjustments are needed. % todo idk about this, maybe dopsat něco?
 
 \begin{figure}[htbp]
 	\centering
@@ -163,9 +163,9 @@ Result of landscape spline generation with landscape deformation is seen on Fig.
 
 \subsection{River and Lake Spline Creation}
 
-The purpose of this page is to create river splines or lake splines on a previously generated landscape. Landscape height extension is recommended, as the depth of rivers and lakes can extend bellow the lowest point of the landscape. Similarly to section~\ref{sec:landscape_spline_creation}, all segmentation regions of types RIVER or LAKE are displayed in the user interface as a list of collapsible sections, shown in Fig.~\ref{fig:water_body_page}. Each section contains a segmentation processing part and a water body part. User can adjust individual generated splines as shown in Fig.~\ref{fig:water_body_page_individual}.
+The purpose of this page is to create river splines or lake splines on a previously generated landscape. Landscape height extension is recommended, as the depth of rivers and lakes can extend bellow the lowest point of the landscape. Similarly to \refsec{sec:landscape_spline_creation}, all segmentation regions of types RIVER or LAKE are displayed in the user interface as a list of collapsible sections, shown in \reffig{fig:water_body_page}. Each section contains a segmentation processing part and a water body part. User can adjust individual generated splines as shown in \reffig{fig:water_body_page_individual}.
 
-Water zone must be created before user can create water body splines. Water zone encapsulates the entire landscape and its vertical extends. This object is needed for correct creation of water body splines and its usage. Before calculating splines it is recommended to perform binary mask smoothing, otherwise many spline branches can be generated, as seen in Fig.~\ref{fig:skeleton_branches_1}. If the binary mask skeleton or outline is generated fragmented even after the binary mask is smoothed out, user can choose to stitch many spline segments together to form one continuous spline or to close opened splines.
+Water zone must be created before user can create water body splines. Water zone encapsulates the entire landscape and its vertical extends. This object is needed for correct creation of water body splines and its usage. Before calculating splines it is recommended to perform binary mask smoothing, otherwise many spline branches can be generated, as seen in \reffig{fig:skeleton_branches_1}. If the binary mask skeleton or outline is generated fragmented even after the binary mask is smoothed out, user can choose to stitch many spline segments together to form one continuous spline or to close opened splines.
 
 \begin{figure}[htbp]
 	\centering
@@ -195,7 +195,7 @@ The % todo this
 
 The Biome page follows the workflow of the \ac{PCG} Biome Core system~\cite{bk_biome_core}. The user first needs to create a \ac{PCG} Biome Core object. The plugin user interface exposes only the most relevant settings, such as the \ac{PCG} Graph, which controls how the procedural generation is performed, the biome blending range, and the cache cell size. Increasing the cache cell size may help reduce the performance overhead of the \ac{PCG} Biome Core system.
 
-The plugin user interface also provides controls for managing the \ac{PCG} Biome Core object. The user can manually generate, update, or refresh biomes, as well as clean up previously generated biome instances. When working with large and complex biomes, it is recommended to disable automatic refresh of the \ac{PCG} Biome Core object, since frequent updates may overload the Unreal Engine editor and lead to instability. The available settings are shown in Fig.~\ref{fig:biome_page}.
+The plugin user interface also provides controls for managing the \ac{PCG} Biome Core object. The user can manually generate, update, or refresh biomes, as well as clean up previously generated biome instances. When working with large and complex biomes, it is recommended to disable automatic refresh of the \ac{PCG} Biome Core object, since frequent updates may overload the Unreal Engine editor and lead to instability. The available settings are shown in \reffig{fig:biome_page}.
 
 The \ac{PCG} Biome Core system is computationally demanding, especially in terms of memory usage. During testing, large biome setups occasionally led to instability of the Unreal Engine~5 editor. Several mitigation strategies were tested, but none of them significantly improved the observed behavior.  % todo dopsat toto idk
 
@@ -216,9 +216,9 @@ The \ac{PCG} Biome Core system is computationally demanding, especially in terms
 
 \subsection{Biome Spline Creation}
 
-Biome spline generation requires a Biome Definition and one or more Biome Assets, as shown in Fig.~\ref{fig:biome_page_individual}. Both are based on the Data Asset type in Unreal Engine~5 and are provided by the \ac{PCG} Biome Core plugin. The Biome Definition specifies the name and color of the biome. This step is required by all biome construction methods available in the \ac{PCG} Biome Core plugin, and it is especially important when biomes are generated from a biome mask. For biome spline generation alone, however, the biome name and color are not used directly. Generated biome using biome spline can be seen on Fig.~\ref{fig:biome_spline_example}.
+Biome spline generation requires a Biome Definition and one or more Biome Assets, as shown in \reffig{fig:biome_page_individual}. Both are based on the Data Asset type in Unreal Engine~5 and are provided by the \ac{PCG} Biome Core plugin. The Biome Definition specifies the name and color of the biome. This step is required by all biome construction methods available in the \ac{PCG} Biome Core plugin, and it is especially important when biomes are generated from a biome mask. For biome spline generation alone, however, the biome name and color are not used directly. Generated biome using biome spline can be seen on \reffig{fig:biome_spline_example}.
 
-A Biome Asset defines how the biome should be generated. This Data Asset contains settings for the static meshes used in the biome, such as trees and rocks, together with their configuration, probability weights, collision settings, the generator represented by a \ac{PCG} Graph, optional child biome assets, and other parameters. Child Biome Assets work similarly to their parent assets, but only within a limited distance from the parent asset instances. This makes it possible to create more realistic groupings of generated objects, such as a tree surrounded by saplings, as on Fig.~\ref{fig:pcg_exmaple_2} or a large rock surrounded by smaller stones, as on Fig.~\ref{fig:pcg_exmaple_1}.
+A Biome Asset defines how the biome should be generated. This Data Asset contains settings for the static meshes used in the biome, such as trees and rocks, together with their configuration, probability weights, collision settings, the generator represented by a \ac{PCG} Graph, optional child biome assets, and other parameters. Child Biome Assets work similarly to their parent assets, but only within a limited distance from the parent asset instances. This makes it possible to create more realistic groupings of generated objects, such as a tree surrounded by saplings, as on \reffig{fig:pcg_exmaple_2} or a large rock surrounded by smaller stones, as on \reffig{fig:pcg_exmaple_1}.
 
 \begin{figure}[htbp]
 	\centering
@@ -248,14 +248,15 @@ The generating \ac{PCG} Graph directly affects how biome objects are distributed
 \end{figure}
 
 \section{Generated Worlds}
+\label{sec:generated_worlds}
 
 As a proof of concept of this plugin, four different worlds were generated. Environments were chosen to be distinct to showcase what possibilities can this plugin accomplish. All four worlds hat their height map generated from Unreal Engine~5 height map generator  % todo reference here
 and segmentation was done manually. Following four worlds were generated:
 \begin{itemize}
-	\item Desert Oasis - shown on Fig.~\ref{fig:desert_oasis}.
-	\item Étretat Cliffs - cliffs in northern France shown on Fig.~\ref{fig:etretat_cliffs}.
-	\item Grand Canyon - canyon in America shown on Fig.~\ref{fig:grand_canyon}.
-	\item Stu\dh lagil Canyon - canyon in Iceland shown on Fig.~\ref{fig:studlagil_canyon}.
+	\item Desert Oasis - shown on \reffig{fig:desert_oasis}.
+	\item Étretat Cliffs - cliffs in northern France shown on \reffig{fig:etretat_cliffs}.
+	\item Grand Canyon - canyon in America shown on \reffig{fig:grand_canyon}.
+	\item Stu\dh lagil Canyon - canyon in Iceland shown on \reffig{fig:studlagil_canyon}.
 \end{itemize}
 
 \begin{figure}[htbp]

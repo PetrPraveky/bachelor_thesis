@@ -33,7 +33,7 @@ where $q$ is a pixel of the binary mask. The distance transform of $f$ is denote
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is a distance function.If $d(p,q)$ is chosen as Euclidean distance, then $\mathcal{D}_f$ is called the Euclidean distance transform.
 
-Applying \ac{EDT} to the binary mask yields an unsigned distance field, show on figure~\ref{fig:edf}. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
+Applying \ac{EDT} to the binary mask yields an unsigned distance field, show on figure~\reffig{fig:edf}. The value at each element of the distance field is the distance from the corresponding pixel in the binary mask to the nearest background pixel. This can be seen in definition of function $f(q)$, where its value for black pixels is zero, meaning $\mathcal{G}$ computes distance of a white pixel to a black pixel. Consequently, the value of every background pixel in this field is $0$.
 
 \begin{figure}[htbp]
 	\centering
@@ -62,7 +62,7 @@ where $q$ is a pixel of the binary mask. The distance transform of $g$ is denote
 \end{equation}
 where $\mathcal{G}$ is the grid representing the binary mask, $p \in \mathcal{G}$, and $d(p,q)$ is the Euclidean distance.
 
-Signed distance field, shown on figure~\ref{fig:sdf}, has the same dimensions as the initial binary mask. The \ac{SDF} value $v$ at pixel $p$ is defined as the sum of these two distance transforms
+Signed distance field, shown on \reffig{fig:sdf}, has the same dimensions as the initial binary mask. The \ac{SDF} value $v$ at pixel $p$ is defined as the sum of these two distance transforms
 \begin{equation}
 	v = \mathcal{D}_f(p) + \mathcal{D}_g(p),
 \end{equation}
@@ -101,7 +101,7 @@ If we use computed \ac{SDF} of binary mask as our image, then we get resulting b
 \end{equation}
 where $\text{SDF}(x,y)$ is an element of \ac{SDF} at $x$ and $y$ coordinate, and $0\leq x < \text{width}$ and $0 \leq y < \text{height}.$
 
-The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, shown on figure~\ref{fig:binary_mask_eroded}, whereas decreasing it expands the foreground region, shown on figure~\ref{fig:binary_mask_expanded}.
+The user is given option to adjust both Gaussian blur parameter $\sigma$ the threshold value. Increasing the threshold erodes the resulting mask, shown on \reffig{fig:binary_mask_eroded}, whereas decreasing it expands the foreground region, shown on \reffig{fig:binary_mask_expanded}.
 
 \begin{figure}[htbp]
 	\centering
@@ -143,7 +143,7 @@ Thinning of a binary mask, referred to as skeletonization, is a process of remov
 	\item There should not be substantial gap between skeleton and edge of binary mask, if the foreground region is touching the side.
 \end{itemize}
 
-Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo--Hall algorithm~\cite{bk_guo_hall} and Zhang--Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu} made by Jain and Kumar, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. Difference between each of those algorithms can be seen on Fig.~\ref{fig:zhang_hall_kumar}.
+Many thinning algorithms have been proposed for various applications, one of the popular ones are Guo--Hall algorithm~\cite{bk_guo_hall} and Zhang--Suen algorithm~\cite{bk_zhang_suen}. Their main advantage is their ability to be parallelized, but both of them do not guarantee desired 1-pixel width without some additional post-processing. A different algorithm was selected~\cite{bk_jain_himanshu} made by Jain and Kumar, which is sequential and guarantees skeleton with no redundant pixels and 1-pixel width. Difference between each of those algorithms can be seen on \reffig{fig:zhang_hall_kumar}.
 
 \begin{figure}[htbp]
 	\centering
@@ -156,7 +156,7 @@ This algorithm works by performing passes in all four directions and sequentiall
 
 Disadvantage of skeletonization algorithms is that they are sensitive to binary mask "corners". As the algorithm creates skeleton to be in the middle, when some section of the foreground region is sharper, it can create branch towards this corner. This can be resolved by smoothing the binary mask before performing skeletonization. Despite the mask slightly changing shape due to the smoothing, the general shape of the skeleton is preserved.
 
-As seen on~\ref{fig:skeleton_branches_2}, even performing skeletonization on smoothed binary mask can lead to undesirable curving on the skeleton. This level of control can not be achieved by simple binary mask smoothing but other more complex algorithms would be needed. However, this results is acceptable for out application of creating splines, as the user has the option to manually adjust them, if the error is too noticeable.
+As seen on \reffig{fig:skeleton_branches_2}, even performing skeletonization on smoothed binary mask can lead to undesirable curving on the skeleton. This level of control can not be achieved by simple binary mask smoothing but other more complex algorithms would be needed. However, this results is acceptable for out application of creating splines, as the user has the option to manually adjust them, if the error is too noticeable.
 
 \begin{figure}[htbp]
 	\centering
@@ -358,7 +358,7 @@ In the implementation, an additional iteration limit can be used as a safety mea
 
 Polyline created from binary mask skeleton or contour can have large amount of redundant points, which could hinder subsequent spline interpolation. To solve this, we employ Douglas--Peucker algorithm~\cite{bk_douglas_peucker} for simplifying polylines.
 
-Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examines all the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point. Example of reduced polyline by Douglas--Peucker algorithm can be seen on figure~\ref{fig:douglas_peucker}.
+Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given first and last point of the polyline and both of them are marked to be kept. Line segment is formed between them. It then examines all the remaining points and finds with the maximum distance to this line segment. If this distance is greater than $\epsilon$, the point is marked to be kept and the algorithm is recursively applied to the two sub-polylines defined by the first point, the selected point, and the last point. Example of reduced polyline by Douglas--Peucker algorithm can be seen on \reffig{fig:douglas_peucker}.
 
 \begin{figure}[htbp]
 	\centering
@@ -377,7 +377,7 @@ When the recursion is completed a new polylines is constructed from the points w
 
 In our implementation, we chose to represent splines as a sequence of cubic B\'ezier curves rather than as Hermite curves, which are used internally by Unreal Engine~5. The main reason for this choice is that B\'ezier curves are more convenient for the algorithms introduced later in this chapter. At the same time, a cubic B\'ezier curve can be converted to a Hermite representation in a straightforward manner.
 
-A cubic B\'ezier curve $\mathbf{B}(t)$, shown on figure~\ref{fig:bezier_curve}, is defined by two end points, $\mathbf{P}_0$ and $\mathbf{P}_3$, and two control points, $\mathbf{P}_1$ and $\mathbf{P}_2$. It is given by
+A cubic B\'ezier curve $\mathbf{B}(t)$, shown on \reffig{fig:bezier_curve}, is defined by two end points, $\mathbf{P}_0$ and $\mathbf{P}_3$, and two control points, $\mathbf{P}_1$ and $\mathbf{P}_2$. It is given by
 \begin{equation}
 	\mathbf{B}(t) = (1 - t)^3\mathbf{P}_0 + 3(1-t)^2t\mathbf{P}_1 + 3(1-t)t^2\mathbf{P}_2 + t^3\mathbf{P}_3\quad,
 	\label{eq:bezier_curve}
@@ -391,7 +391,7 @@ for $t \in [0,1]$.
 	\label{fig:bezier_curve}
 \end{figure}
 
-A Hermite curve $\mathbf{H}(t)$, shown on figure~\ref{fig:hermite_spline}, is defined by two end points, $\mathbf{H}_0$ and $\mathbf{H}_1$, and two tangent vectors, $\mathbf{M}_0$ and $\mathbf{M}_1$. It is given by
+A Hermite curve $\mathbf{H}(t)$, shown on \reffig{fig:hermite_spline}, is defined by two end points, $\mathbf{H}_0$ and $\mathbf{H}_1$, and two tangent vectors, $\mathbf{M}_0$ and $\mathbf{M}_1$. It is given by
 \begin{equation}
 	\mathbf{H}(t) = (2t^3 - 3t^2 + 1)\mathbf{H}_0 + (t^3 - 2t^2 + t)\mathbf{M}_0 + (-2t^3 + 3t^2)\mathbf{H}_1 + (t^3 - t^2)\mathbf{M}_1\quad,
 \end{equation}
@@ -423,7 +423,7 @@ We used a class of parameterization described in~\cite{bk_catmull_rom_parameteri
 	t_{k+1} = t_k + \left\lVert \mathbf{P}_{k+1} - \mathbf{P}_k \right\rVert^\alpha\quad,
 	\label{eq:catmull_rom_knot}
 \end{equation}
-where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal. Example of spline interpolation through polyline defined by points $\mathbf{P_0}$ to $\mathbf{P_5}$ can be seen on figure~\ref{fig:catmull_rom}.
+where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal. Example of spline interpolation through polyline defined by points $\mathbf{P_0}$ to $\mathbf{P_5}$ can be seen on \reffig{fig:catmull_rom}.
 
 In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
 
@@ -441,7 +441,7 @@ As follows from the definition, a Catmull--Rom spline segment is constructed fro
 		\mathbf{P}_{n+1} &= 2\mathbf{P}_n - \mathbf{P}_{n-1}\quad,
 	\end{aligned}
 \end{equation}
-where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Example of such extension can be seen on figure~\ref{fig:catmull_rom_extension}.
+where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Example of such extension can be seen on \reffig{fig:catmull_rom_extension}.
 
 \begin{figure}[htbp]
 	\centering
@@ -450,7 +450,7 @@ where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Examp
 	\label{fig:catmull_rom_extension}
 \end{figure}
 
-A drawback of this endpoint extension is that it may produce undesirable shapes when the polyline forms a sharp turn near the boundary. As shown in Fig.~\ref{fig:catmull_rom_extension_edgecase}, the first spline segment is constructed from the points $\mathbf{P}_{-1}, \mathbf{P}_0, \mathbf{P}_1$, and $\mathbf{P}_2$. Since $\mathbf{P}_{-1}$ is defined to be collinear with $\mathbf{P}_0$ and $\mathbf{P}_1$, the tangent of the segment between $\mathbf{P}_0$ and $\mathbf{P}_1$ at $\mathbf{P}_0$ is aligned with the line passing through these points. As a result, the curve segment is pulled in the tangent direction, which may lead to an unnatural shape near the endpoint. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
+A drawback of this endpoint extension is that it may produce undesirable shapes when the polyline forms a sharp turn near the boundary. As shown in \reffig{fig:catmull_rom_extension_edgecase}, the first spline segment is constructed from the points $\mathbf{P}_{-1}, \mathbf{P}_0, \mathbf{P}_1$, and $\mathbf{P}_2$. Since $\mathbf{P}_{-1}$ is defined to be collinear with $\mathbf{P}_0$ and $\mathbf{P}_1$, the tangent of the segment between $\mathbf{P}_0$ and $\mathbf{P}_1$ at $\mathbf{P}_0$ is aligned with the line passing through these points. As a result, the curve segment is pulled in the tangent direction, which may lead to an unnatural shape near the endpoint. However, since the base polylines are constructed from binary mask skeletons or contours, this situation occurs only rarely in practice.
 
 \begin{figure}[htbp]
 	\centering
@@ -506,7 +506,7 @@ for $j = 0,1$. Similarly as with $\mathbf{Q}_i$, point $\mathbf{R}_j$ is a point
 \begin{equation}
 	\mathbf{S} = (\mathbf{R}_1 - \mathbf{R}_0)u + \mathbf{R}_0.
 \end{equation}
-Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. Algorithm is visualized on figure\ref{fig:de_casteljau}
+Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal to a point $\mathbf{B}(u)$. Algorithm is visualized on \reffig{fig:de_casteljau}
 
 \begin{figure}[htbp]
 	\centering
@@ -515,7 +515,7 @@ Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal t
 	\label{fig:de_casteljau}
 \end{figure}
 
-We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in figure~\ref{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in figure~\ref{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
+We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}_B(t_B)$, and $t_A,t_B \in \left[0,1\right]$. B\'ezier curve $\mathbf{B}_A$, visualized in \reffig{fig:de_casteljau_subdivision_a}, is defined by control points $\mathbf{P}_0$, $\mathbf{Q}_0$, $\mathbf{R}_0$ and $\mathbf{S}$. B\'ezier curve $\mathbf{B}_B$, visualized in \reffig{fig:de_casteljau_subdivision_b}, is defined by control points $\mathbf{S}$, $\mathbf{R}_1$, $\mathbf{Q}_2$ and $\mathbf{P}_3$. These segments when combined results in the initial B\'ezier curve $\mathbf{B}(t)$. 
 
 \begin{figure}[htbp]
 	\centering
