@@ -1,25 +1,54 @@
 \chapter{Dataset Generation and Verification}
 
-Created environments in previous \refsec{sec:generated_worlds} were used to generate datasets containing \ac{LiDAR}s, RGB cameras and ground truth segmentations. Generated datasets are listed in \reftab{tab:generated_datasets}.
+\section{Generated Datasets}
+
+Created environments from previous \refsec{sec:generated_worlds} were used to generate datasets containing \ac{LiDAR}s, RGB cameras and ground truth segmentations. Generated datasets are listed in \reftab{tab:generated_datasets}. Datasets were created using Flight Forge~\cite{bk_flight_forge} simulator.
 
 \begin{table*}[!h]
 	\centering
 	\noindent
-	\begin{tabular}{c|c|c}
-		File name & Duration & Description \\
+	\begin{tabular}{c|c|c|c}
+		ID & File name & Duration & Description \\
 		\hline
-		desert\_oasis\_loop\_2026-05-05\_20-32-59\_0.mcap & 13 min 7 s & \\
-		desert\_oasis\_palms\_2026-05-05\_22-57-19\_0.mcap & 12 min 25 s & \\
-		desert\_oasis\_vonder\_2026-05-05\_22-15-50\_0.mcap & 12 min 16 s & \\
-		etretat\_cliffs\_beach\_2026-05-06\_23-01-09\_0.mcap & 12 min 29 s & \\
-		etretat\_cliffs\_cliff\_side\_2026-05-07\_00-26-46\_0.mcap & 13 min 33 s & \\
-		etretat\_cliffs\_road\_2026-05-06\_23-46-21\_0.mcap & 13 min 51 s & \\
-		grand\_canyon\_hills\_2026-05-08\_21-06-16\_0.mcap & 14 min 16 s & \\
-		grand\_canyon\_river\_2026-05-08\_20-09-50\_0.mcap & 11 min 54 s & \\
-		studlagil\_canyon\_hills\_2026-05-08\_22-46-09\_0.mcap & 12 min 35 s & \\
-		studlagil\_canyon\_river\_2026-05-08\_23-33-52\_0.mcap & 13 min 26 s & \\
+		0101 & desert\_oasis\_loop\_2026-05-05\_20-32-59\_0.mcap & 13 min 7 s & \\
+		0102 & desert\_oasis\_palms\_2026-05-05\_22-57-19\_0.mcap & 12 min 25 s & \\
+		0103 & desert\_oasis\_vonder\_2026-05-05\_22-15-50\_0.mcap & 12 min 16 s & \\
+		0201 & etretat\_cliffs\_beach\_2026-05-06\_23-01-09\_0.mcap & 12 min 29 s & \\
+		0202 & etretat\_cliffs\_cliff\_side\_2026-05-07\_00-26-46\_0.mcap & 13 min 33 s & \\
+		0203 & etretat\_cliffs\_road\_2026-05-06\_23-46-21\_0.mcap & 13 min 51 s & \\
+		0301 & grand\_canyon\_hills\_2026-05-08\_21-06-16\_0.mcap & 14 min 16 s & \\
+		0302 & grand\_canyon\_river\_2026-05-08\_20-09-50\_0.mcap & 11 min 54 s & \\
+		0401 & studlagil\_canyon\_hills\_2026-05-08\_22-46-09\_0.mcap & 12 min 35 s & \\
+		0402 & studlagil\_canyon\_river\_2026-05-08\_23-33-52\_0.mcap & 13 min 26 s & \\
 	\end{tabular}
 	\noindent
 	\caption{List of generated datasets on created worlds.}
 	\label{tab:generated_datasets}
 \end{table*}
+
+\section{Dataset Mapping}
+
+Four mapping frameworks that support \ac{ROS2} were chosen: LOSOS, OctoMap~\cite{bk_octomap}, WaveMap~\cite{bk_wavemap} and RayFronts~\cite{bk_rayfronts}. The selected mapping frameworks differ in their primary purpose, but they partially overlap in the supported map representations. The overlap is mainly visible in semantic mapping, \ac{ESDF} based representations, and occupancy mapping. On \reftab{tab:supported_mapping_features} is shown which features are supported by which mapping frameworks.
+
+\begin{table*}[!h]
+	\centering
+	\noindent
+	\begin{tabular}{c|c|c|c}
+		Mapping Framework & Semantic mapping & \ac{ESDF} & Occupancy mapping \\
+		\hline
+		LOSOS & Yes & Yes & Yes \\
+		OctoMap & No & No & Yes \\
+		WaveMap & No & Yes & No \\
+		RayFronts & Yes & No & No
+	\end{tabular}
+	\noindent
+	\caption{Table of mapping frameworks supported features.}
+	\label{tab:supported_mapping_features}
+\end{table*}
+
+\ref{fig:insertion_time} displays the insertion time of the point cloud. ...
+
+Memory consumption over time is shown on \ref{fig:memory_usage}. ...
+
+\ref{fig:cpu_usage} illustraces the CPU usage. ...
+

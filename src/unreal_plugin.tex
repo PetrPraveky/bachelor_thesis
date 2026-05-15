@@ -163,7 +163,7 @@ Result of landscape spline generation with landscape deformation is seen on \ref
 
 \subsection{River and Lake Spline Creation}
 
-The purpose of this page is to create river splines or lake splines on a previously generated landscape. Landscape height extension is recommended, as the depth of rivers and lakes can extend bellow the lowest point of the landscape. Similarly to \refsec{sec:landscape_spline_creation}, all segmentation regions of types RIVER or LAKE are displayed in the user interface as a list of collapsible sections, shown in \reffig{fig:water_body_page}. Each section contains a segmentation processing part and a water body part. User can adjust individual generated splines as shown in \reffig{fig:water_body_page_individual}.
+The purpose of this page is to create river or lake splines on a previously generated landscape. Landscape height extension is recommended, as the depth of rivers and lakes can extend bellow the lowest point of the landscape. Similarly to \refsec{sec:landscape_spline_creation}, all segmentation regions of types RIVER or LAKE are displayed in the user interface as a list of collapsible sections, shown in \reffig{fig:water_body_page}. Each section contains a segmentation processing part and a water body part. User can adjust individual generated splines as shown in \reffig{fig:water_body_page_individual}.
 
 Water zone must be created before user can create water body splines. Water zone encapsulates the entire landscape and its vertical extends. This object is needed for correct creation of water body splines and its usage. Before calculating splines it is recommended to perform binary mask smoothing, otherwise many spline branches can be generated, as seen in \reffig{fig:skeleton_branches_1}. If the binary mask skeleton or outline is generated fragmented even after the binary mask is smoothed out, user can choose to stitch many spline segments together to form one continuous spline or to close opened splines.
 
@@ -182,7 +182,7 @@ Water zone must be created before user can create water body splines. Water zone
 	}
 \end{figure}
 
-The % todo this
+When creating river splines, user has the option to adjust depth of the river and the speed and direction of water flow. There is also a option to select river width at each point of the spline accordingly to calculated \ac{EDT} of the river binary mask region. When creating lake splines, user has the option to only adjust the depth of the lake. Example of river spline is shown on ~\reffig{fig:river_spline_example}.
 
 \begin{figure}[htbp]
 	\centering
@@ -197,7 +197,7 @@ The Biome page follows the workflow of the \ac{PCG} Biome Core system~\cite{bk_b
 
 The plugin user interface also provides controls for managing the \ac{PCG} Biome Core object. The user can manually generate, update, or refresh biomes, as well as clean up previously generated biome instances. When working with large and complex biomes, it is recommended to disable automatic refresh of the \ac{PCG} Biome Core object, since frequent updates may overload the Unreal Engine editor and lead to instability. The available settings are shown in \reffig{fig:biome_page}.
 
-The \ac{PCG} Biome Core system is computationally demanding, especially in terms of memory usage. During testing, large biome setups occasionally led to instability of the Unreal Engine~5 editor. Several mitigation strategies were tested, but none of them significantly improved the observed behavior.  % todo dopsat toto idk
+The \ac{PCG} Biome Core system is computationally demanding, especially in terms of memory usage. During testing, large biome setups occasionally led to instability of the Unreal Engine~5 editor. Several mitigation strategies were tested, but none of them significantly improved the observed behavior.
 
 \begin{figure}[htbp]
 	\centering
@@ -238,8 +238,6 @@ A Biome Asset defines how the biome should be generated. This Data Asset contain
 
 The generating \ac{PCG} Graph directly affects how biome objects are distributed. This functionality is provided by the \ac{PCG} Framework plugin~\cite{bk_pcg}. A typical \ac{PCG} Graph first generates a large number of random points inside an enclosed area, which in this case is defined by the biome spline. These points are assigned random rotations and scales. The graph then processes the points through a sequence of filters defined either in the \ac{PCG} Graph itself or in the Biome Asset. These filters modify the number of points or their properties. In the final step, static meshes are spawned at the resulting point locations. This allows the user to prepare different mesh placement procedures depending on the intended biome appearance.
 
-% todo ukázka jak vypadá taková pipeline? tedy jak to vypadá postupně, dbg koskty jako pointy, filtraci a pak ty static meshe? můj PCG forest to tam myslím má - idk unreal nefunguje nejde mi to vyrobit jsem zoufalý
-
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/screenshots/biome_spline_example.png}
@@ -250,7 +248,7 @@ The generating \ac{PCG} Graph directly affects how biome objects are distributed
 \section{Generated Worlds}
 \label{sec:generated_worlds}
 
-As a proof of concept of this plugin, four different worlds were generated. Environments were chosen to be distinct to showcase what possibilities can this plugin accomplish. All four worlds hat their height map generated from Unreal Engine~5 height map generator  % todo reference here
+As a proof of concept of this plugin, four different worlds were generated. Environments were chosen to be distinct to showcase what possibilities can this plugin accomplish. All four worlds hat their height map generated from Unreal Engine~5 height map generator\footnote{Heighmaps were generated using this website: \url{https://manticorp.github.io/unrealheightmap/}.}
 and segmentation was done manually. Following four worlds were generated:
 \begin{itemize}
 	\item Desert Oasis - shown on \reffig{fig:desert_oasis}.
