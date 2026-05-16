@@ -2,8 +2,20 @@
 
 \chapter{Conclusion\label{chap:conclusion}}
 
-Summarize the achieved results.
-Can be similar as an abstract or an introduction, however, it should be written in past tense.
+This thesis introduced a possible workflow for semi-automatic generation of outdoor simulation environments in the form of an Unreal Engine~5 plugin. The resulting plugin follows common Unreal Engine~5 workflows and allows the user to adjust individual steps of the generation pipeline. The main focus of the plugin is the creation of Unreal Engine~5 world features using splines extracted from segmentation image. 
+
+Instead of creating the entire scene automatically, the plugin provides the user a tool to create the initial structure of the simulation environment. As the generated world is made entirely from existing Unreal Engine~5 features and objects, user can freely adjust and modify the generated result. This makes the tool suitable for workflows where both automation and manual control are required.
+
+The implemented features include landscape generation from a height map, landscape splines, rivers and lakes, and biomes regions. Since the generated features are based on a common spline representation, the system can be extended with additional feature types, that follows similar workflows, in the future. In addition, biome regions generation require the user to provide Biome Templates and Biome Assets, and other objects in accordance with the \ac{PCG} Biome Core workflow.
+
+Four generated worlds were used to create datasets using Flight Forge simulator. These datasets were then evaluated using four mapping frameworks accordingly to thesis assignment. Tested mapping frameworks were: LOSOS, OctoMap, WaveMap and RayFronts. Evaluated metrics were: insertion time of a dataset point cloud, memory consumption and CPU usage. The obtained results show how datasets created from the generated environments behave in different mapping frameworks and provide a basis for comparing their performance under the tested conditions. ??? 
 
 \section{Future Work}
 
+Although the methods and plugin introduced in this thesis provide a reliable simulation environments creation tool, the system can be further enhanced in several ways. Possible improvements include support for additional Unreal Engine~5 object types, new generation features, and different forms of input data.
+
+One possible extension of this plugin is to include urban generation. As discussed in related works, significant progress has been made in procedural generation of urban environments. Additionally, generation of buildings could also be achieved procedurally, easing the need of pre-created assets to generate the environments.
+
+Another possible direction is the automatic creation of input data. In the current workflow, the height map and segmentation image have to be provided by the user. neural networks based methods, such as \ac{GAN} and \ac{CGAN} models, could be used to generate height map from existing satellite images. This could reduce the dependency on publicly available data, which can be incomplete, inaccurate or imprecise. In addition, generation of completely new satellite image could make it possible to create entirely synthetic worlds, increasing the variety of generated environments.
+
+The generation of environment assets is another possible area for improvement. At the moment, assets used in the generated environments must be created manually or obtained from existing asset libraries.  Procedural asset generation methods, such as those used in Infinigen, Infinigen Indoors and Infinigen-Articulated, could be adapted to generate reusable assets instead of complete photorealistic scenes. Such an extension could reduce the need for manually prepared assets and make it easier to generate unique environments.
