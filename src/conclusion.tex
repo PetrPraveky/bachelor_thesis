@@ -8,7 +8,7 @@ Instead of creating the entire scene automatically, the plugin provides the user
 
 The implemented features include landscape generation from a height map, landscape splines, rivers and lakes, and biomes regions. Since the generated features are based on a common spline representation, the system can be extended with additional feature types, that follows similar workflows, in the future. In addition, biome regions generation require the user to provide Biome Templates and Biome Assets, and other objects in accordance with the \ac{PCG} Biome Core workflow.
 
-Four generated worlds were used to create datasets using Flight Forge simulator. These datasets were then evaluated using four mapping frameworks accordingly to thesis assignment. Tested mapping frameworks were: LOSOS, OctoMap, WaveMap and RayFronts. Evaluated metrics were: insertion time of a dataset point cloud, memory consumption and CPU usage. The obtained results show how datasets created from the generated environments behave in different mapping frameworks and provide a basis for comparing their performance under the tested conditions. ??? 
+Four generated worlds were used to create datasets using Flight Forge simulator. These datasets were then used for mapping framework evaluation accordingly to the thesis assignment. Evaluated mapping frameworks were: OctoMap, WaveMap, RayFronts and volumetric/occupancy-based mapper~\cite{bk_capek_masters}. Observed metrics were: point cloud insertion time, memory consumption and CPU usage. The obtained results show how the mapping frameworks perform when processing large outdoor environments.
 
 \section{Future Work}
 

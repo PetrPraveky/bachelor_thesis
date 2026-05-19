@@ -1,9 +1,9 @@
 \chapter{Method Design and Implementation}
 \label{chap:ue_plugin}
 
-In the previous chapter, the algorithms and methodology used in the proposed Unreal Engine 5 plugin were described. The plugin depends on several official Unreal Engine plugins, namely Water, \ac{PCG} Framework~\cite{bk_pcg}, and \ac{PCG} Biome Core~\cite{bk_biome_core}. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes. Plugin was build in Unreal Engine~5 version 5.4.4.
+In the previous chapter, the algorithms and methodology used in the proposed method were described. This method was implemented as Unreal Engine 5 plugin. The plugin depends on several official Unreal Engine plugins, namely Water, \ac{PCG} Framework~\cite{bk_pcg}, and \ac{PCG} Biome Core~\cite{bk_biome_core}. The latter two provide built-in support for procedural generation, while the Water plugin enables correct landscape deformation for rivers and lakes. Plugin was build in Unreal Engine~5 version 5.4.4.
 
-This plugin is used to create simulation environments for the Flight Forge Simulator~\cite{bk_flight_forge}. It was designed as an editor plugin, which means that it relies on tools and functionality that are not available at Unreal Engine runtime. As a result, the generated environments must either be compiled into the simulator or loaded from external data prepared in advance.
+The plugin was designed as an editor plugin, which means that it relies on tools and functionality that are not available at Unreal Engine runtime. As a result, the generated environments must either be compiled into the simulator or loaded from external data prepared in advance.
 
 \section{Processing Pipeline}
 
@@ -80,7 +80,7 @@ The initial step in the creation of all spline-based Unreal Engine objects is se
 
 The 2D spline, calculated either from a binary mask skeleton or from a contour, is then transformed from binary mask space to landscape space. This process is performed using the Hermite spline representation rather than the B\'ezier representation, since Hermite splines are more convenient for this type of transformation, as seen on \reffig{fig:spline_preview}.
 
-To transform a point from image space to landscape space, the $x$ and $y$ coordinates are first mapped according to \refalg{alg:transform_point}.
+To transform a point from image space to landscape space, the $x$ and $y$ coordinates are first mapped according to Algorithm~\ref{alg:transform_point}.
 
 {
 \captionof{algorithm}{Point transformation from image space to landscape space}
@@ -96,8 +96,8 @@ To transform a point from image space to landscape space, the $x$ and $y$ coordi
 	\State
 	\Return $(q_x, q_y, 0)$
 	\EndProcedure
-	\label{alg:transform_point}
 \end{algorithmic}
+\label{alg:transform_point}
 }
 
 After this planar transformation, a ray parallel to the $z$-axis is cast from the transformed point. The intersection of this ray with the landscape determines the final spline point in landscape space. In Unreal Engine~5, this operation also provides the landscape normal vector at the point of intersection.
@@ -111,7 +111,7 @@ where $i \in \{0,1\}$ for a single Hermite curve segment.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/screenshots/spline_preview_example.png}
-	\caption{Example of spline preview functionality.}
+	\caption{Example of spline preview functionality. Identification numbers of each spline can be seen above them. The width of spline preview and size of the ID text can be adjusted in the plugin user interface.}
 	\label{fig:spline_preview}
 \end{figure}
 
@@ -146,18 +146,18 @@ The user can enable an option to smooth the landscape spline with respect to the
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/screenshots/spline_smoothing_example.png}
-	\caption{Example of spline smoothing with respect to the terrain functionality. Blue spline is the initial and unsmoothed. Yellow spline is smoothed with respect to the terrain. Yellow rectangles are added points of the spline to achieve this result.}
+	\caption{Example of spline smoothing with respect to the terrain functionality. Blue spline is the initial, not smoothed out, spline. Yellow spline is smoothed with respect to the terrain. Yellow rectangles are the added spline points needed to achieve this result.}
 	\label{fig:spline_smoothing}
 \end{figure}
 
 In Unreal Engine~5, version 5.5 and later, automatic deformation of the landscape according to the landscape spline is supported through the C++ \ac{API}. However, this project was developed in Unreal Engine~5 version 5.4.4, where this functionality was not available. For this reason, the plugin provides the user with detailed instructions for performing this step manually.
 
-Result of landscape spline generation with landscape deformation is seen on \reffig{fig:landscape_spline_example}. It can be observed that small manual adjustments are needed. % todo idk about this, maybe dopsat něco?
+Example of landscape spline generation with landscape deformation is illustrated on \reffig{fig:landscape_spline_example}. In this example it can be observed that small manual adjustments are needed to achieve more realistic junctions. Landscape deformation is dependent on landscape resolution.
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/screenshots/landscape_spline_example.png}
-	\caption{Example of generated landscape spline from binary mask skeleton.}
+	\caption{Example of generated landscape spline from binary mask skeleton using Catmull--Rom splines with landscape deformation.}
 	\label{fig:landscape_spline_example}
 \end{figure}
 
@@ -187,7 +187,7 @@ When creating river splines, user has the option to adjust depth of the river an
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/screenshots/river_spline_example.png}
-	\caption{Example of generated river spline from binary mask skeleton. At each point of the spline different width, calculated using \ac{EDT}, was chosen giving more accurate and realistic look of the river.}
+	\caption{Example of generated river spline from binary mask skeleton using Catmull--Rom splines. Width at each point of the spline was calculated using \ac{EDT} to achieve more realistic river shape.}
 	\label{fig:river_spline_example}
 \end{figure}
 
@@ -201,7 +201,7 @@ The \ac{PCG} Biome Core system is computationally demanding, especially in terms
 
 \begin{figure}[htbp]
 	\centering
-	\subfloat[Biome page with two segmentation regions of type BIOME: Forest and Quarry.] {
+	\subfloat[Biome page with two segmentation region of type BIOME: Forest.] {
 		\includegraphics[width=0.48\textwidth]{./fig/screenshots/biome_page.png}
 		\label{fig:biome_page}
 	}
@@ -248,8 +248,9 @@ The generating \ac{PCG} Graph directly affects how biome objects are distributed
 \section{Generated Worlds}
 \label{sec:generated_worlds}
 
-As a proof of concept of this plugin, four different worlds were generated. Environments were chosen to be distinct to showcase what possibilities can this plugin accomplish. All four worlds hat their height map generated from Unreal Engine~5 height map generator\footnote{Heighmaps were generated using this website: \url{https://manticorp.github.io/unrealheightmap/}.}
-and segmentation was done manually. Following four worlds were generated:
+As a showcase of the proposed method, four unique worlds were generated. The environments were chosen to be visually and structurally distinct in order to demonstrate the range of scenarios that can be created using the proposed method. The height maps for all four worlds were generated using an online height map generator for Unreal Engine~5\footnote{Height maps were generated using: \url{https://manticorp.github.io/unrealheightmap/}.}, while the segmentation images were created manually.
+
+Following four worlds were generated:
 \begin{itemize}
 	\item Desert Oasis - shown on \reffig{fig:desert_oasis}.
 	\item Étretat Cliffs - cliffs in northern France shown on \reffig{fig:etretat_cliffs}.
@@ -257,18 +258,22 @@ and segmentation was done manually. Following four worlds were generated:
 	\item Stu\dh lagil Canyon - canyon in Iceland shown on \reffig{fig:studlagil_canyon}.
 \end{itemize}
 
+Slight manual adjustments were made to correct issues caused by inaccurate height maps. This problem was most noticeable in the Étretat Cliffs world, where the height map had approximately half the resolution of the other height maps. Additionally, river splines were adjusted manually, since the hand-drawn segmentation images did not always precisely follow the intended river paths.
+
+Even though small manual adjustments were required, the time needed to generate each environment was approximately half an hour. This is significantly less than the time that would be required to create similar worlds entirely manually. Most of the time was spent drawing the segmentation images and preparing the \ac{PCG} Biome Core Data Assets.
+
 \begin{figure}[htbp]
 	\centering
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/desert_oasis_1.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/desert_oasis_1.jpg}
 		\label{fig:desert_oasis_1}
 	}
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/desert_oasis_2.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/desert_oasis_2.jpg}
 		\label{fig:desert_oasis_2}
 	}
 	\caption{
-		Example world named Desert Oasis generated using by this Unreal Engine~5 plugin.
+		 World named Desert Oasis generated using proposed method implemented as Unreal Engine~5 plugin.
 	}
 	\label{fig:desert_oasis}
 \end{figure}
@@ -276,15 +281,15 @@ and segmentation was done manually. Following four worlds were generated:
 \begin{figure}[htbp]
 	\centering
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/etretat_cliffs_1.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/etretat_cliffs_1.jpg}
 		\label{fig:etretat_cliffs_1}
 	}
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/etretat_cliffs_2.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/etretat_cliffs_2.jpg}
 		\label{fig:etretat_cliffs_2}
 	}
 	\caption{
-		Example world named Étretat Cliffs generated using by this Unreal Engine~5 plugin.
+		World named Étretat Cliffs generated using proposed method implemented as Unreal Engine~5 plugin.
 	}
 	\label{fig:etretat_cliffs}
 \end{figure}
@@ -292,15 +297,15 @@ and segmentation was done manually. Following four worlds were generated:
 \begin{figure}[htbp]
 	\centering
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/grand_canyon_1.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/grand_canyon_1.jpg}
 		\label{fig:grand_canyon_1}
 	}
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/grand_canyon_2.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/grand_canyon_2.jpg}
 		\label{fig:grand_canyon_2}
 	}
 	\caption{
-		Example world named Grand Canyon generated using by this Unreal Engine~5 plugin.
+		World named Grand Canyon generated using proposed method implemented as Unreal Engine~5 plugin.
 	}
 	\label{fig:grand_canyon}
 \end{figure}
@@ -308,15 +313,15 @@ and segmentation was done manually. Following four worlds were generated:
 \begin{figure}[htbp]
 	\centering
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/studlagil_canyon_1.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/studlagil_canyon_1.jpg}
 		\label{fig:studlagil_canyon_1}
 	}
 	\subfloat[] {
-		\includegraphics[width=0.48\textwidth]{./fig/screenshots/studlagil_canyon_2.png}
+		\includegraphics[width=0.48\textwidth]{./fig/screenshots/studlagil_canyon_2.jpg}
 		\label{fig:studlagil_canyon_2}
 	}
 	\caption{
-		Example world named Stu\dh lagil Canyon generated using by this Unreal Engine~5 plugin.
+		World named Stu\dh lagil Canyon generated using proposed method implemented as Unreal Engine~5 plugin.
 	}
 	\label{fig:studlagil_canyon}
 \end{figure}

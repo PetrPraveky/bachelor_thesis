@@ -22,13 +22,13 @@ Created environments from previous \refsec{sec:generated_worlds} were used to ge
  		0402 & studlagil\_canyon\_river\_2026-05-08\_23-33-52\_0.mcap & 13 min 26 s & \\
 	\end{tabular}
 	\noindent
-	\caption{List of generated datasets on created worlds.}
+	\caption{List of created datasets on generated worlds.}
 	\label{tab:generated_datasets}
 \end{table*}
 
-\section{Dataset Mapping}
+\section{Mapping Frameworks Verification}
 
-Four mapping frameworks that support \ac{ROS2} were chosen: LOSOS, OctoMap~\cite{bk_octomap}, WaveMap~\cite{bk_wavemap} and RayFronts~\cite{bk_rayfronts}. The selected mapping frameworks differ in their primary purpose, but they partially overlap in the supported map representations. The overlap is mainly visible in semantic mapping, \ac{ESDF} based representations, and occupancy mapping. On \reftab{tab:supported_mapping_features} is shown which features are supported by which mapping frameworks.
+Four mapping frameworks that support \ac{ROS2} were chosen: OctoMap~\cite{bk_octomap}, WaveMap~\cite{bk_wavemap}, RayFronts~\cite{bk_rayfronts} and volumetric/occupancy-based mapper~\cite{bk_capek_masters}. The selected mapping frameworks differ in their primary purpose, but they partially overlap in the supported map representations. The overlap is mainly visible in semantic mapping, \ac{ESDF} based representations, and occupancy mapping. On \reftab{tab:supported_mapping_features} is shown which features are supported by which mapping frameworks.
 
 \begin{table*}[!h]
 	\centering
@@ -36,7 +36,7 @@ Four mapping frameworks that support \ac{ROS2} were chosen: LOSOS, OctoMap~\cite
 	\begin{tabular}{c|c|c|c}
 		Mapping Framework & Semantic mapping & \ac{ESDF} & Occupancy mapping \\
 		\hline
-		LOSOS & Yes & Yes & Yes \\
+		\makecell{Volumetric/ \\ occupancy-based mapper} & Yes & Yes & Yes \\
 		OctoMap & No & No & Yes \\
 		WaveMap & No & Yes & No \\
 		RayFronts & Yes & No & No
@@ -46,15 +46,100 @@ Four mapping frameworks that support \ac{ROS2} were chosen: LOSOS, OctoMap~\cite
 	\label{tab:supported_mapping_features}
 \end{table*}
 
-The selected mapping frameworks were compared by certain metrics to show how the generated datasets perform in each frameworks. The used metrics were: Insertion time of the dataset point cloud, memory consumption and CPU usage. The metrics are visualized on Figures~\ref{fig:...}--\ref{fig...} using datasets with IDs 0102, 0201, 0402 and 0302.
+In general, mapping frameworks are often evaluated on datasets that do not perfectly correspond to real-world conditions. For this reason, the selected mapping frameworks were evaluated using the datasets created in this thesis to demonstrate their behavior when processing large outdoor environments. The observed metrics were point cloud insertion time, memory consumption, and CPU usage. These metrics are visualized over time in Figs.~\ref{fig:insertion_time}--\ref{fig:cpu_usage} using datasets with IDs 0102, 0201, 0302 and 0402.
 
-\ref{fig:insertion_time} displays the insertion time of the point cloud. ...
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Point cloud insertion time over the duration of dataset experiment 0102] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/desert_oasis_palms_2026-05-05_22-57-19_0_insertion_time.png}
+		\label{fig:desert_oasis_insertion}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Point cloud insertion time over the duration of dataset experiment 0201] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/etretat_cliffs_beach_2026-05-06_23-01-09_0_insertion_time.png}
+		\label{fig:etretat_cliffs_insertion}
+	}
+	
+	\par\medskip
+	
+	\subfloat[Point cloud insertion time over the duration of dataset experiment 0302] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/grand_canyon_river_2026-05-08_20-09-50_0_insertion_time.png}
+		\label{fig:grand_canyon_insertion}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Point cloud insertion time over the duration of dataset experiment 0402] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/studlagil_canyon_river_2026-05-08_23-33-52_0_insertion_time.png}
+		\label{fig:studlagil_canyon_insertion}
+	}
+	\caption{
+		Point cloud insertion time comparison between OctoMap (blue), ...
+		over the duration of each dataset experiment with min-max shaded reagions.
+	}
+	\label{fig:insertion_time}
+\end{figure}
 
-Memory consumption over time is shown on \ref{fig:memory_usage}. ...
+\reffig{fig:insertion_time} displays the insertion time of the point cloud. ...
 
-\ref{fig:cpu_usage} illustraces the CPU usage. ...
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Memory consumption over the duration of dataset experiment 0102] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/desert_oasis_palms_2026-05-05_22-57-19_0_memory_usage.png}
+		\label{fig:desert_oasis_memory}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Memory consumption over the duration of dataset experiment 0201] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/etretat_cliffs_beach_2026-05-06_23-01-09_0_memory_usage.png}
+		\label{fig:etretat_cliffs_memory}
+	}
+	
+	\par\medskip
+	
+	\subfloat[Memory consumption over the duration of dataset experiment 0302] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/grand_canyon_river_2026-05-08_20-09-50_0_memory_usage.png}
+		\label{fig:grand_canyon_memory}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[Memory consumption over the duration of dataset experiment 0402] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/studlagil_canyon_river_2026-05-08_23-33-52_0_memory_usage.png}
+		\label{fig:studlagil_canyon_memory}
+	}
+	\caption{
+		Memory consumption (RSS) comparison between OctoMap (blue), ...
+		over the duration of each dataset experiment.
+	}
+	\label{fig:memory_usage}
+\end{figure}
 
+Memory consumption over time is shown on \reffig{fig:memory_usage}. ...
 
+\begin{figure}[htbp]
+	\centering
+	\subfloat[CPU usage over the duration of dataset experiment 0102] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/desert_oasis_palms_2026-05-05_22-57-19_0_cpu_usage.png}
+		\label{fig:desert_oasis_cpu}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[CPU usage over the duration of dataset experiment 0201] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/etretat_cliffs_beach_2026-05-06_23-01-09_0_cpu_usage.png}
+		\label{fig:etretat_cliffs_cpu}
+	}
+	
+	\par\medskip
+	
+	\subfloat[CPU usage over the duration of dataset experiment 0302] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/grand_canyon_river_2026-05-08_20-09-50_0_cpu_usage.png}
+		\label{fig:grand_canyon_cpu}
+	}
+	\hspace{0.03\textwidth}
+	\subfloat[CPU usage over the duration of dataset experiment 0402] {
+		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/studlagil_canyon_river_2026-05-08_23-33-52_0_cpu_usage.png}
+		\label{fig:studlagil_canyon_cpu}
+	}
+	\caption{
+		CPU usage comparison between OctoMap (blue), ...
+		over the duration of each dataset experiment with min-max shaded reagions.
+	}
+	\label{fig:cpu_usage}
+\end{figure}
 
-
-Prootže v základu na mapování se používaji nedokonalé datasety, které nesouvisí s reálnými. A prostě ukázat jak se ty frameworky chovají na reálnějších datech.
+\reffig{fig:cpu_usage} illustraces the CPU usage. ...

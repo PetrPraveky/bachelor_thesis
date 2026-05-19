@@ -169,7 +169,7 @@ As seen on \reffig{fig:skeleton_branches_2}, even performing skeletonization on 
 		\label{fig:skeleton_branches_2}
 	}
 	\caption{
-		Example of resulting binary mask skeleton without (a) smoothing and with smoothing (b). The gray area is the binary mask, either initial or smoothed. Smoothing was performed with $\sigma = 15.0$ and threshold $-1.2$.
+		Example of resulting binary mask skeleton without smoothing (a) and with smoothing (b). The gray area is the binary mask, either initial or smoothed, from which the skeleton was extracted. Smoothing was performed with $\sigma = 15.0$ and threshold $-1.2$.
 	}
 \end{figure}
 
@@ -293,8 +293,6 @@ Polyline stitching is the process of connecting two or more polylines by merging
 
 The proposed algorithm follows a greedy strategy. In each iteration, it considers all endpoints of currently active polylines and finds the closest valid pair whose distance does not exceed the specified threshold. The corresponding polylines are then merged into a new polyline, while one of the original polylines is marked as inactive. This process is repeated until no further valid merge can be found.
 
-%Since the algorithm is greedy in nature, it does not guarantee a optimal stitching configuration. Its intended use-case is to stitch two or more polylines into one continuous polyline. 
-
 {
 \captionof{algorithm}{Polyline Stitching algorithm}
 \begin{algorithmic}[1]
@@ -363,7 +361,7 @@ Distance parameter $\epsilon > 0$ is chosen. The algorithm is initially given fi
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./fig/geogebra/douglas_peucker.pdf}
-	\caption{Visual example of Douglas--Peucker algorithm. Initial polyline is drawn in gray dotted line, final polyline is black. Blue rectangles are visualization of parameter $\epsilon$.}
+	\caption{Illustration of Douglas--Peucker algorithm. Initial polyline is drawn in gray dotted line, final polyline is drawn in black. Blue rectangles surrounding the polyline is visualization of parameter $\epsilon$.}
 	\label{fig:douglas_peucker}
 \end{figure}
 
@@ -387,7 +385,7 @@ for $t \in [0,1]$.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/bezier_curve.pdf}
-	\caption{Example of cubic B\'ezier curve constructed from four control points.}
+	\caption{Example of cubic B\'ezier curve constructed from four control points $\mathbf{P_0}$ to $\mathbf{P_3}$.}
 	\label{fig:bezier_curve}
 \end{figure}
 
@@ -400,7 +398,7 @@ for $t \in [0,1]$.
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/hermite_spline.pdf}
-	\caption{Example of Hermite spline constructed from two points and two tangent vectors.}
+	\caption{Illustration of Hermite spline constructed from two points $\mathbf{H_0}$,$\mathbf{H_1}$ and two tangent vectors $\mathbf{M_0}$,$\mathbf{M_1}$.}
 	\label{fig:hermite_spline}
 \end{figure}
 
@@ -423,14 +421,14 @@ We used a class of parameterization described in~\cite{bk_catmull_rom_parameteri
 	t_{k+1} = t_k + \left\lVert \mathbf{P}_{k+1} - \mathbf{P}_k \right\rVert^\alpha\quad,
 	\label{eq:catmull_rom_knot}
 \end{equation}
-where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal. Example of spline interpolation through polyline defined by points $\mathbf{P_0}$ to $\mathbf{P_5}$ can be seen on \reffig{fig:catmull_rom}.
+where $\alpha \in [0,1]$ and $t_{0} = 0$. If $\alpha = 0$ then the parameterization is uniform, for $\alpha = 1$ the parameterization becomes chordal. Example of spline interpolation through polyline defined by points $\mathbf{P_0}$ to $\mathbf{P_5}$ can be seen on \reffig{fig:catmull_rom}. On this figure, it can be observed that the spline interpolation does not connect first and last points. This property can also be observed in the definition~\ref{eq:catmull_rom_knot}.
 
 In our implementation, we use $\alpha = 0.5$, which corresponds to the centripetal parameterization of Catmull--Rom spline. This variant was selected because it is the only parameterization in this family that guarantees no cusps or self-intersections within a single curve segment~\cite{bk_catmull_rom_bezier}.
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.8\textwidth]{./fig/geogebra/catmull_rom.pdf}
-	\caption{Example of spline interpolation by Catmull--Rom spline. Points $\mathbf{B}_1,\mathbf{B}_2,\mathbf{C}_1,\mathbf{C}_2,\mathbf{D}_1,\mathbf{D}_2$ are corresponding control points for B\'ezier curve.}
+	\caption{Example of spline interpolation using Catmull--Rom spline through polyline of six points, $\mathbf{P_0}$ to $\mathbf{P_5}$ are corresponding with corresponding control points for B\'ezier curve colored in gray.}
 	\label{fig:catmull_rom}
 \end{figure}
 
@@ -446,7 +444,7 @@ where the polyline consists of points $\mathbf{P}_0, \dots, \mathbf{P}_n$. Examp
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/catmull_rom_edge.pdf}
-	\caption{Example of Catmull--Rom endpoint extension.}
+	\caption{Illustration of Catmull--Rom spline endpoint extension using auxiliary point $\mathbf{P_{-1}}$.}
 	\label{fig:catmull_rom_extension}
 \end{figure}
 
@@ -455,7 +453,7 @@ A drawback of this endpoint extension is that it may produce undesirable shapes 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.4\textwidth]{./fig/geogebra/catmull_rom_edgecase.pdf}
-	\caption{Example of Catmull--Rom endpoint extension sharp curve.}
+	\caption{Illustration of Catmull--Rom endpoint extension sharp curve resulting in unnatural curve near the endpoint $\mathbf{P_0}$.}
 	\label{fig:catmull_rom_extension_edgecase}
 \end{figure}
 
@@ -511,7 +509,7 @@ Final point $\mathbf{S}$ lies on a cubic B\'ezier $\mathbf{B}(t)$ and is equal t
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.6\textwidth]{./fig/geogebra/de_casteljau.pdf}
-	\caption{Visual example of de Casteljau algorithm for $u=0.35$.}
+	\caption{Visual illustration of de Casteljau algorithm for $u=0.35$.}
 	\label{fig:de_casteljau}
 \end{figure}
 
@@ -528,7 +526,7 @@ We can then create two cubic B\'ezier curves $\mathbf{B}_A(t_A)$ and $\mathbf{B}
 		\label{fig:de_casteljau_subdivision_b}
 	}
 	\caption{
-		Example of subdividing B\'ezier curve using de Casteljau algorithm for $u=0.35$, the left subdivion (a) and the right subdivision (b).
+		Example of subdividing B\'ezier curve using de Casteljau algorithm for $u=0.35$, the left subdivision resulting in one B\'ezier curve (a), and the right subdivision resulting in second B\'ezier curve (b).
 	}
 \end{figure}
 
