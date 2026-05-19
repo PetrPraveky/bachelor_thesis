@@ -7,7 +7,11 @@
 \section*{Abstract}
 \vskip 0.5em
 
-The study of autonomous \acp{UAV} has become a prominent sub-field of mobile robotics.
+Virtual environments are increasingly used in simulation, testing, and training scenarios. However, manual creation of such environments is a time-consuming process, especially when the environments are large outdoor worlds. This thesis focuses on a semi-automatic method for creating outdoor procedural environments while preserving user control over the generation process.
+
+The proposed method uses height maps and segmentation images as the basis for environment generation inside Unreal Engine~5. A height map is used to create the landscape, while segmentation images are processed into binary masks. From these masks, skeletons and contours are extracted. Skeletons are used to generate roads and rivers, while contours are used to generate lakes and biome regions. Biome generation is implemented using the Unreal Engine~5 PCG Biome Core plugin.
+
+Four worlds were generated using the proposed method. These worlds were then used to create datasets with the Flight Forge simulator and on them selected mapping frameworks were evaluated. The created datasets can be used for testing localization, mapping, LiDAR odometry and visual odometry. Additionally, if the generated environments are based on satellite imagery, the resulting datasets can also be compared with corresponding real-world locations.
 
 \vskip 1em
 

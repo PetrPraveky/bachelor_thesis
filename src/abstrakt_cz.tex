@@ -8,11 +8,12 @@
 \vskip 0.5em
 
 \sloppy
-Výzkum na poli autonomních bezpilotních prostředků (UAV) se stal významným oborem mobilní robotiky.
 
-1-2 věty problem definition
-3-4 věty na metodologii - nějak vymyslíš :D
-- results - datasets a otestování na mapping frameworks -> dataset pro lokalizaci, mapování, lidarové odometrie, vizuální odometrie, prior map usage (ze satelitního snímku se udělá svět a pak porovná s realitou)
+Virtuální prostředí jsou stále častěji využívána pro simulace, testování a trénovací scénáře. Ruční tvorba takových prostředí je však časově náročný proces, zejména pokud jsou tato prostředí velké venkovní světy. Tato práce se zaměřuje na poloautomatickou metodu vytváření procedurálních venkovních prostředí při zachování uživatelské kontroly nad generačním procesem.
+
+Navržená metoda využívá výškové mapy a segmentační obrázky jako základ pro generování prostředí v Unreal Engine~5. Výšková mapa je použita k vytvoření krajiny a segmentační obrázky jsou zpracovány do binárních masek. Z těchto masek jsou extrahovány kostry a kontury. Kostry jsou použity pro generování cest a řek, zatímco kontury jsou použity pro generování jezer a oblastí biomů. Generace biomů je implementována pomocí pluginu Unreal Engine~5 PCG Biome Core.
+
+Čtyři světy byly vygenerovány pomocí navžené meotdy. Tyto světy byly následně použity k vytvoření datasetů pomocí simulátoru Flight Forge a na těchto datasetech byly vyhodnoceny vybrané mapovací frameworky. Vytvořené datasety lze použít pro testování lokalizace, mapování, LiDARové odometrie a vizuální odometrie. Pokud jsou navíc generovaná prostředí založena na satelitních snímcích, výsledné datasety lze porovnat s odpovídajícími lokacemi v reálném světě.
 
 \vskip 1em
 
