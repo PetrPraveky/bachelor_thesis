@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pandas as pd
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 # ------------------------------------------------------------
 # CSV header
@@ -80,7 +81,7 @@ METRICS = {
 
 FRAMEWORK_LABELS = {
     "octomap": "OctoMap",
-
+    "losos": "Volumetric/occupancy-based mapper"
 }
 
 
@@ -170,7 +171,10 @@ def plot_single_metric(
 ):
     metric = METRICS[metric_key]
 
-    fig, ax = plt.subplots(figsize=(6.8, 4.2))
+    # Trochu vyšší graf, aby bylo víc místa pro legendu/inset
+    fig, ax = plt.subplots(figsize=(6.8, 4.9))
+
+    plotted_series = {}
 
     for framework, df in sorted(framework_data.items()):
         if df.empty:
@@ -197,6 +201,19 @@ def plot_single_metric(
             label=label,
         )
 
+        color = line.get_color()
+
+        plotted_series[framework.lower()] = {
+            "x": x,
+            "y": y,
+            "df": df,
+            "label": label,
+            "color": color,
+            "min_col": min_col,
+            "max_col": max_col,
+            "scale": scale,
+        }
+
         if metric["shade"] and min_col and max_col:
             if min_col in df.columns and max_col in df.columns:
                 ymin = df[min_col] * scale
@@ -206,20 +223,92 @@ def plot_single_metric(
                     x,
                     ymin,
                     ymax,
-                    color=line.get_color(),
+                    color=color,
                     alpha=0.14,
                     linewidth=0,
                 )
-    # 0 Offset
+
+    # ------------------------------------------------------------
+    # 0,0 opravdu v levém dolním rohu
+    # ------------------------------------------------------------
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
     ax.margins(x=0, y=0)
 
-    ax.set_title(metric["title"])
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel(metric["ylabel"])
-    ax.grid(True, alpha=0.25)
-    ax.legend()
+    # ------------------------------------------------------------
+    # Main plot labels
+    # ------------------------------------------------------------
+    ax.set_title(metric["title"], fontsize=12)
+    ax.set_xlabel("Time (s)", fontsize=11)
+    ax.set_ylabel(metric["ylabel"], fontsize=11)
+    ax.tick_params(axis="both", labelsize=10)
+
+    # ------------------------------------------------------------
+    # Legenda
+    # ------------------------------------------------------------
+    ax.legend(
+        loc="upper left",
+        fontsize=10,
+        frameon=True,
+    )
+
+    # ------------------------------------------------------------
+    # Inset zoom only for insertion time and losos
+    # ------------------------------------------------------------
+    if metric_key == "insertion_time" and "losos" in plotted_series:
+        losos = plotted_series["losos"]
+        losos_y = losos["y"]
+
+        if not losos_y.empty:
+            losos_max = losos_y.max()
+
+            # Offset nad maximem lososa.
+            y_offset = max(5.0, losos_max * 0.15)
+            inset_y_max = losos_max + y_offset
+
+            # Bounds jsou [left, bottom, width, height] v souřadnicích grafu.
+            # Etretat: vlevo pod legendou.
+            # Ostatní: vpravo dole, trochu nad spodkem.
+            if world_name.startswith("etretat_cliffs_beach"):
+                inset_bounds = [0.04, 0.52, 0.28, 0.28]
+            else:
+                inset_bounds = [0.7, 0.08, 0.28, 0.28]
+
+            axins = ax.inset_axes(inset_bounds)
+
+            # Do insetu vykreslíme všechny metody, ale osa Y je přiblížená
+            # podle lososa. Velké hodnoty ostatních metod budou oříznuté.
+            for framework, series in plotted_series.items():
+                axins.plot(
+                    series["x"],
+                    series["y"],
+                    linewidth=1.1,
+                    color=series["color"],
+                )
+
+                if metric["shade"] and series["min_col"] and series["max_col"]:
+                    df = series["df"]
+                    min_col = series["min_col"]
+                    max_col = series["max_col"]
+                    scale = series["scale"]
+
+                    if min_col in df.columns and max_col in df.columns:
+                        axins.fill_between(
+                            series["x"],
+                            df[min_col] * scale,
+                            df[max_col] * scale,
+                            color=series["color"],
+                            alpha=0.12,
+                            linewidth=0,
+                        )
+
+            axins.set_xlim(left=0)
+            axins.set_ylim(0, inset_y_max)
+            axins.margins(x=0)
+
+            axins.set_title("V/O mapper detail", fontsize=9, pad=4)
+            axins.tick_params(labelsize=9)
+            axins.tick_params(labelsize=8)
 
     fig.tight_layout()
 
