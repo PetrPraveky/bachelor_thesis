@@ -181,17 +181,6 @@
 	file = {Full Text PDF:C\:\\Users\\nikdo\\Zotero\\storage\\4TBVNNXA\\Johansson a Riis - 2025 - Satellite-driven environment reconstruction in Unreal Engine  A simplified process for widespread a.pdf:application/pdf},
 }
 
-@inproceedings{bk_infinigen_outdoor,
-	title = {Infinite {Photorealistic} {Worlds} {Using} {Procedural} {Generation}},
-	url = {https://openaccess.thecvf.com/content/CVPR2023/html/Raistrick_Infinite_Photorealistic_Worlds_Using_Procedural_Generation_CVPR_2023_paper.html?ref=labelbox.ghost.io},
-	language = {en},
-	urldate = {2026-05-09},
-	author = {Raistrick, Alexander and Lipson, Lahav and Ma, Zeyu and Mei, Lingjie and Wang, Mingzhe and Zuo, Yiming and Kayan, Karhan and Wen, Hongyu and Han, Beining and Wang, Yihan and Newell, Alejandro and Law, Hei and Goyal, Ankit and Yang, Kaiyu and Deng, Jia},
-	year = {2023},
-	pages = {12630--12641},
-	file = {Full Text PDF:C\:\\Users\\nikdo\\Zotero\\storage\\WDW49MGS\\Raistrick et al. - 2023 - Infinite Photorealistic Worlds Using Procedural Generation.pdf:application/pdf},
-}
-
 @article{bk_seg_gen_ue5,
 	title = {{SegGen}: {An} {Unreal} {Engine} 5 {Pipeline} for {Generating} {Multimodal} {Semantic} {Segmentation} {Datasets}},
 	volume = {25},
@@ -225,18 +214,6 @@
 	month = oct,
 	year = {2017},
 	file = {Full Text PDF:C\:\\Users\\nikdo\\Zotero\\storage\\MTXKALZM\\Tsirikoglou et al. - 2017 - Procedural Modeling and Physically Based Rendering for Synthetic Data Generation in Automotive Appli.pdf:application/pdf},
-}
-
-@inproceedings{bk_infinigen_indoor,
-	title = {Infinigen {Indoors}: {Photorealistic} {Indoor} {Scenes} using {Procedural} {Generation}},
-	shorttitle = {Infinigen {Indoors}},
-	url = {https://openaccess.thecvf.com/content/CVPR2024/html/Raistrick_Infinigen_Indoors_Photorealistic_Indoor_Scenes_using_Procedural_Generation_CVPR_2024_paper.html},
-	language = {en},
-	urldate = {2026-05-09},
-	author = {Raistrick, Alexander and Mei, Lingjie and Kayan, Karhan and Yan, David and Zuo, Yiming and Han, Beining and Wen, Hongyu and Parakh, Meenal and Alexandropoulos, Stamatis and Lipson, Lahav and Ma, Zeyu and Deng, Jia},
-	year = {2024},
-	pages = {21783--21794},
-	file = {Full Text PDF:C\:\\Users\\nikdo\\Zotero\\storage\\5GZ6MD99\\Raistrick et al. - 2024 - Infinigen Indoors Photorealistic Indoor Scenes using Procedural Generation.pdf:application/pdf},
 }
 
 @inproceedings{bk_infinigen_outdoor,
@@ -389,4 +366,41 @@
 	school = {Czech Technical University in Prague, Faculty of Electrical Engineering},
 	author = {Čapek, David},
 	year = {2026},
+}
+
+@misc{bk_city_x,
+	title = {{CityX}: {Controllable} {Procedural} {Content} {Generation} for {Unbounded} {3D} {Cities}},
+	shorttitle = {{CityX}},
+	url = {http://arxiv.org/abs/2407.17572},
+	doi = {10.48550/arXiv.2407.17572},
+	abstract = {Urban areas, as the primary human habitat in modern civilization, accommodate a broad spectrum of social activities. With the surge of embodied intelligence, recent years have witnessed an increasing presence of physical agents in urban areas, such as autonomous vehicles and delivery robots. As a result, practitioners significantly value crafting authentic, simulation-ready 3D cities to facilitate the training and verification of such agents. However, this task is quite challenging. Current generative methods fall short in either diversity, controllability, or fidelity. In this work, we resort to the procedural content generation (PCG) technique for high-fidelity generation. It assembles superior assets according to empirical rules, ultimately leading to industrial-grade outcomes. To ensure diverse and self contained creation, we design a management protocol to accommodate extensive PCG plugins with distinct functions and interfaces. Based on this unified PCG library, we develop a multi-agent framework to transform multi-modal instructions, including OSM, semantic maps, and satellite images, into executable programs. The programs coordinate relevant plugins to construct the 3D city consistent with the control condition. A visual feedback scheme is introduced to further refine the initial outcomes. Our method, named CityX, demonstrates its superiority in creating diverse, controllable, and realistic 3D urban scenes. The synthetic scenes can be seamlessly deployed as a real-time simulator and an infinite data generator for embodied intelligence research. Our project page: https://cityx-lab.github.io.},
+	urldate = {2026-05-22},
+	publisher = {arXiv},
+	author = {Zhang, Shougao and Zhou, Mengqi and Wang, Yuxi and Luo, Chuanchen and Wang, Rongyu and Li, Yiwei and Zhang, Zhaoxiang and Peng, Junran},
+	month = dec,
+	year = {2024},
+	note = {arXiv:2407.17572 [cs.CV]},
+	keywords = {Computer Science - Artificial Intelligence, Computer Science - Computer Vision and Pattern Recognition},
+	file = {Preprint PDF:C\:\\Users\\nikdo\\Zotero\\storage\\UQKQL8FV\\Zhang et al. - 2024 - CityX Controllable Procedural Content Generation for Unbounded 3D Cities.pdf:application/pdf;Snapshot:C\:\\Users\\nikdo\\Zotero\\storage\\N8XMKJT7\\2407.html:text/html},
+}
+
+@article{bk_scene_dreamer,
+	title = {{SceneDreamer}: {Unbounded} {3D} {Scene} {Generation} from {2D} {Image} {Collections}},
+	volume = {45},
+	issn = {0162-8828, 2160-9292, 1939-3539},
+	shorttitle = {{SceneDreamer}},
+	url = {http://arxiv.org/abs/2302.01330},
+	doi = {10.1109/TPAMI.2023.3321857},
+	abstract = {In this work, we present SceneDreamer, an unconditional generative model for unbounded 3D scenes, which synthesizes large-scale 3D landscapes from random noise. Our framework is learned from in-the-wild 2D image collections only, without any 3D annotations. At the core of SceneDreamer is a principled learning paradigm comprising 1) an efficient yet expressive 3D scene representation, 2) a generative scene parameterization, and 3) an effective renderer that can leverage the knowledge from 2D images. Our approach begins with an efficient bird's-eye-view (BEV) representation generated from simplex noise, which includes a height field for surface elevation and a semantic field for detailed scene semantics. This BEV scene representation enables 1) representing a 3D scene with quadratic complexity, 2) disentangled geometry and semantics, and 3) efficient training. Moreover, we propose a novel generative neural hash grid to parameterize the latent space based on 3D positions and scene semantics, aiming to encode generalizable features across various scenes. Lastly, a neural volumetric renderer, learned from 2D image collections through adversarial training, is employed to produce photorealistic images. Extensive experiments demonstrate the effectiveness of SceneDreamer and superiority over state-of-the-art methods in generating vivid yet diverse unbounded 3D worlds.},
+	number = {12},
+	urldate = {2026-05-22},
+	journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+	author = {Chen, Zhaoxi and Wang, Guangcong and Liu, Ziwei},
+	month = dec,
+	year = {2023},
+	note = {arXiv:2302.01330 [cs.CV]},
+	keywords = {Computer Science - Computer Vision and Pattern Recognition, Computer Science - Graphics},
+	pages = {15562--15576},
+	annote = {Comment: IEEE Transactions on Pattern Analysis \& Machine Intelligence (TPAMI) 2023; Project Page https://scene-dreamer.github.io/ Code https://github.com/FrozenBurning/SceneDreamer},
+	file = {Preprint PDF:C\:\\Users\\nikdo\\Zotero\\storage\\VLH5SFYW\\Chen et al. - 2023 - SceneDreamer Unbounded 3D Scene Generation from 2D Image Collections.pdf:application/pdf;Snapshot:C\:\\Users\\nikdo\\Zotero\\storage\\YQQZJYEL\\2302.html:text/html},
 }
