@@ -6,6 +6,14 @@ Virtual environments are increasingly used in simulation, testing, and training 
 
 Virtual environments can be broadly categorized into indoor and outdoor. Indoor environments often require detailed placement of objects, furniture, and other props in order to appear believable. This can be difficult to achieve using only simple procedural rules, since the resulting scene must respect spatial relationships and common patterns of human designed spaces. Outdoor environments, on the other hand, are often more suitable for procedural or semi-automatic generation, as their structure can frequently be described using terrain elevation, paths, water bodies, vegetation regions, urban areas, and other large-scale features.
 
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.8\textwidth]{./fig/screenshots/intro_screenshot.png}
+	\caption{Example of the usage of Flight Forge simulator~\cite{bk_flight_forge} on a generated world.}
+	\label{fig:intro_screenshot}
+\end{figure}
+
+
 This thesis focuses specifically on the generation of outdoor virtual environments. Creating such environments manually is a time-consuming process. Elements such as terrain, roads, rivers, lakes, and biomes often have to be placed consistently with the intended layout of the scene. When created manually, this process requires a significant amount of repetitive work and can become difficult to manage for larger environments.
 
 One way to reduce this workload is to use input data that already describes the desired structure of the environment. Height maps can define the terrain elevation, while segmentation images can describe the placement of different environmental features such as roads, rivers, lakes, forests, or biomes. However, these image-based representations cannot be used directly as editable objects inside a 3D engine. They first need to be processed and converted into engine-specific structures.
@@ -48,14 +56,19 @@ The original Infinigen system is focused mainly on natural scenes. To extend thi
 
 On Infinigen Indoors generator system, another creation tool was build, Infinigen-Articulated~\cite{bk_infinigen_articulated}. This generator has the ability to generate simulation-ready assets, including moving parts and dynamic and kinematic definitions. This allows the user of this tool to more easily create robot simulation and testing environments without the need of creating the assets manually, which is time consuming task.
 
+A different method for generating realistic environments was proposed in~\cite{bk_scene_dreamer}. The method generates a bird's-eye-view (\ac{BEV}) scene representation from simplex noise, including a height field describing terrain elevation and a semantic field describing scene semantics. From this 3D representation, realistic 2D images are produced using neural volumetric rendering. The model is trained only on collections of real 2D images, which are used to learn the appearance of generated 3D worlds, without requiring explicit 3D annotations.
+
 \subsection{Prompt-Based Generation}
 
 Recent advances in large language models and vision-language models have introduced a different approach to virtual environment generation. Instead of requiring the user to manually define all generation parameters, these methods allow the desired scene to be described using a high-level text prompt. This makes the generation process more accessible to users, but it also reduces direct control over the exact spatial structure of the resulting environment.
 
 Methods for generation of 3D outdoor environments with features such as biomes, roads and rivers were proposed in~\cite{bk_procedural_content_generation,bk_controllable_procedural_generation}. These methods follow previously mentioned pipelines that consist of creating landscape, populating it with biomes and vegetation, objects and paths. Parameters required for executing these pipelines are converted from user input prompt via \ac{LLM} processing layer.
 
+A method for urban environment generation that utilizes an \ac{LLM} for placement and control of \ac{PCG} was proposed in~\cite{bk_city_x}. The scene elements are categorized into roads, buildings, greenery, traffic flow, pedestrians, and water bodies. The method uses a multi-agent framework to divide the workflow into annotation, planning, execution, and evaluation stages. This workflow enables the generation of high-quality large-scale urban scenes from user descriptions as well as from real-world data, such as satellite images.
+
 Method for generating visually coherent 3D indoor environments was proposed in~\cite{bk_3d_generalist}. It combines a \ac{LLM} for prompt interpretation with a \ac{VLM} for refining resulting environment. A limitation of this method is that the assets used to populate the interiors still have to be supplied.
 
+\newpage
 \section{Mathematical Notation}
 
 \begin{table*}[!h]
