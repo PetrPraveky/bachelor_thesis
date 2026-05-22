@@ -1,8 +1,12 @@
 \chapter{Dataset Generation and Verification}
 
+Full autonomy of \ac{UAV}s remains an unsolved problem, and opportunities to evaluate autonomous systems in challenging real-world environments are limited. One possible approach is to use procedurally generated environments to test autonomous methods under controlled but challenging conditions before deploying them in the real world.
+
+To demonstrate the proposed method on generating large-scale outdoor environments, datasets were created from the generated worlds using the Flight Forge simulator~\cite{bk_flight_forge}. These datasets were then used to evaluate selected mapping frameworks and to demonstrate their performance when processing large-scale outdoor environments.
+
 \section{Generated Datasets}
 
-Created environments from previous \refsec{sec:generated_worlds} were used to generate datasets containing \ac{LiDAR}s, RGB cameras and ground truth segmentations. Generated datasets are listed in \reftab{tab:generated_datasets}. Datasets were created using Flight Forge~\cite{bk_flight_forge} simulator.
+Created environments from previous \refsec{sec:generated_worlds} were used to generate datasets containing \ac{LiDAR}s, RGB cameras and ground truth segmentations. Generated datasets are listed in \reftab{tab:generated_datasets}.
 
 \begin{table*}[!h]
 	\centering
@@ -38,12 +42,20 @@ and volumetric/occupancy-based mapper~\cite{bk_capek_masters}. The selected mapp
 \begin{table*}[!h]
 	\centering
 	\noindent
-	\begin{tabular}{c|c|c|c}
-		Mapping Framework & Semantic mapping & \ac{ESDF} & Occupancy mapping \\
+	\begin{tabular}{c|c|c}
+		Mapping Framework 
+		% & Semantic mapping 
+		& \ac{ESDF} & Occupancy mapping \\
 		\hline
-		\makecell{Volumetric/ \\ occupancy-based mapper} & Yes & Yes & Yes \\
-		OctoMap & No & No & Yes \\
-		WaveMap & No & Yes & No \\
+		\makecell{Volumetric/occupancy-based mapper} 
+		% & Yes 
+		& Yes & Yes \\
+		OctoMap 
+		% & No 
+		& No & Yes \\
+		WaveMap 
+		% & No 
+		& Yes & No \\
 		% RayFronts & Yes & No & No
 	\end{tabular}
 	\noindent
@@ -83,9 +95,9 @@ In general, mapping frameworks are often evaluated on datasets that do not perfe
 	\label{fig:insertion_time}
 \end{figure}
 
-\reffig{fig:insertion_time} shows the point cloud insertion time. WaveMap has a relatively high insertion time at the beginning of the dataset playback. After the initial phase, the insertion time stabilizes, with occasional spikes reaching approximately $\SI{40}{\milli\second}$. OctoMap has a high point cloud insertion time compared to the other evaluated frameworks. One possible explanation for the high insertion time of OctoMap is that the datasets were loaded from an HDD, which provides lower data transfer speeds compared to an SSD.
+\reffig{fig:insertion_time} shows the point cloud insertion time. WaveMap has a relatively high insertion time at the beginning of the dataset playback. After the initial phase, the insertion time stabilizes, with occasional spikes reaching approximately $\SI{40}{\milli\second}$. OctoMap has a high point cloud insertion time compared to the other evaluated frameworks. This may be related to the octree-based data structure used by OctoMap, which can be less efficient for this type of input than the data structures used by the other evaluated frameworks~\cite[p.~30]{bk_capek_masters}.
 
-The volumetric/occupancy-based mapper performs the most consistently among the evaluated frameworks, reaching approximately $400\times$ lower insertion times than OctoMap. This result is consistent with the expectation that the mapper should be faster than OctoMap, as reported in~\cite{bk_capek_masters}, where a speedup of $18.5\times$ was observed. The larger difference measured in this thesis may be caused by differences in dataset loading, storage transfer speeds, or the way OctoMap processes the input point clouds.
+The volumetric/occupancy-based mapper performs the most consistently among the evaluated frameworks, reaching approximately $400\times$ lower insertion times than OctoMap. This result is consistent with the expectation that the mapper should be faster than OctoMap, as reported in~\cite{bk_capek_masters}, where a speedup of $18.5\times$ was observed. The larger difference measured in this thesis may be caused by differences in dataset loading, storage transfer speeds, or the less efficient data structure utilized by OctoMap.
 
 \begin{figure}[h]
 	\centering
@@ -119,7 +131,7 @@ The volumetric/occupancy-based mapper performs the most consistently among the e
 
 Memory consumption over time is shown in \reffig{fig:memory_usage}. OctoMap shows a steady, approximately linear increase in memory consumption. The volumetric/occupancy-based mapper requires only a fraction of the memory used by OctoMap. This behavior is consistent with the explanation given in~\cite{bk_capek_masters}, where the lower memory consumption is attributed to the more efficient sparse voxel representation of the VDB data structure compared to the octree-based storage used by OctoMap~\cite[p.~64]{bk_capek_masters}. The same trend is also visible in our results.
 
-WaveMap steadily consumes approximately $\SI{45}{\mega\byte}$ of memory. One possible explanation for this low memory consumption is the different type of map representation used by WaveMap. Unlike the other evaluated frameworks, which perform occupancy mapping, WaveMap computes an \ac{ESDF}. However, since the exact memory behavior depends on the internal implementation and configuration of the framework, this explanation should be interpreted only as a possible cause.
+WaveMap steadily consumes approximately $\SI{45}{\mega\byte}$ of memory. One possible explanation for this low memory consumption is the different type of map representation used by WaveMap. Unlike the other evaluated frameworks, which perform occupancy mapping, WaveMap computes an \ac{ESDF}, which is in line with the claims in~\cite{bk_wavemap}.
 
 \begin{figure}[h]
 	\centering

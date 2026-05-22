@@ -2,7 +2,9 @@
 
 \chapter{Introduction\label{chap:introduction}}
 
-Virtual environments are increasingly used in simulation, testing, and training scenarios. In the context of \ac{UAV}, simulated worlds make it possible to test navigation, perception, and decision-making methods in controlled conditions before deploying them in the real world. For such simulations to be useful, the environment should contain meaningful spatial structure.
+Recent works have shown that full autonomy of \ac{UAV} remains an unsolved problem~\cite{bk_slam}, while opportunities to evaluate autonomous systems in challenging real-world environments are limited. For this reason, high-fidelity virtual environments have become an essential tool for the development, testing, and validation of autonomous methods. In the context of \ac{UAV}s, simulated worlds make it possible to assess navigation, perception, and decision-making algorithms in controlled conditions before deployment in real scenarios.
+
+For such simulations to be useful, the virtual environment must contain meaningful spatial structure and sufficient visual diversity. It should allow the system to interact with terrain, obstacles, and scene elements in a way that resembles real deployment conditions. In this work, we aim to present a method for generation of visually diverse environments with minimal user input.
 
 Virtual environments can be broadly categorized into indoor and outdoor. Indoor environments often require detailed placement of objects, furniture, and other props in order to appear believable. This can be difficult to achieve using only simple procedural rules, since the resulting scene must respect spatial relationships and common patterns of human designed spaces. Outdoor environments, on the other hand, are often more suitable for procedural or semi-automatic generation, as their structure can frequently be described using terrain elevation, paths, water bodies, vegetation regions, urban areas, and other large-scale features.
 
