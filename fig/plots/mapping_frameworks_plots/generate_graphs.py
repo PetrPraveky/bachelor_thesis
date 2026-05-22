@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 # ------------------------------------------------------------
 # CSV header
@@ -45,6 +44,32 @@ CSV_COLUMNS = [
 ]
 
 # ------------------------------------------------------------
+# Wavemap CSV Columns
+# ------------------------------------------------------------
+
+WAVEMAP_CSV_COLUMNS = [
+    "unknown_0",
+    "unknown_1",
+    "unknown_2",
+    "intersection_avg",
+    "intersection_min",
+    "intersection_max",
+    "intersection_last",
+    "intersection_count",
+    "points_per_second",
+    "avg_points_per_second",
+    "total_points_processed",
+    "total_callbacks",
+    "memory_rss_mb",
+    "memory_vms_mb",
+    "cpu_percent",
+    "cpu_min_percent",
+    "cpu_max_percent",
+    "cpu_avg_percent",
+    "uptime_seconds",
+]
+
+# ------------------------------------------------------------
 # Metric configuration
 # ------------------------------------------------------------
 
@@ -81,7 +106,8 @@ METRICS = {
 
 FRAMEWORK_LABELS = {
     "octomap": "OctoMap",
-    "losos": "Volumetric/occupancy-based mapper"
+    "wavemap": "WaveMap",
+    "losos": "Volumetric/occupancy-based mapper",
 }
 
 
@@ -108,14 +134,43 @@ def sanitize_filename(name: str) -> str:
         for c in name
     )
 
+def get_csv_columns(path: Path, framework: str) -> list[str]:
+    """
+    Selects the correct CSV column layout.
 
-def read_metrics_csv(path: Path, warmup_seconds: float = 0.0) -> pd.DataFrame:
-    # CSV nemá header, proto header=None.
-    # Názvy sloupců si přiřadíme ručně podle indexů.
+    Standard / losos / octomap CSV:
+        32 columns, includes metric_type and ESDF/SDF fields.
+
+    wavemap CSV:
+        19 columns, does not include metric_type or ESDF/SDF fields.
+    """
+    framework_lower = framework.lower()
+
+    if framework_lower == "wavemap":
+        return WAVEMAP_CSV_COLUMNS
+
+    # Fallback podle počtu sloupců, kdyby se framework jmenoval trochu jinak.
+    first_row = pd.read_csv(path, header=None, nrows=1)
+    column_count = first_row.shape[1]
+
+    if column_count == len(WAVEMAP_CSV_COLUMNS):
+        return WAVEMAP_CSV_COLUMNS
+
+    if column_count == len(CSV_COLUMNS):
+        return CSV_COLUMNS
+
+    raise ValueError(
+        f"{path.name}: unsupported CSV column count {column_count}. "
+        f"Expected {len(CSV_COLUMNS)} or {len(WAVEMAP_CSV_COLUMNS)}."
+    )
+
+def read_metrics_csv(path: Path, framework: str, warmup_seconds: float = 0.0) -> pd.DataFrame:
+    columns = get_csv_columns(path, framework)
+
     df = pd.read_csv(
         path,
         header=None,
-        names=CSV_COLUMNS,
+        names=columns,
     )
 
     needed_columns = [
@@ -171,11 +226,54 @@ def plot_single_metric(
 ):
     metric = METRICS[metric_key]
 
-    # Trochu vyšší graf, aby bylo víc místa pro legendu/inset
-    fig, ax = plt.subplots(figsize=(6.8, 4.9))
+    available_frameworks = {
+        framework.lower()
+        for framework, df in framework_data.items()
+        if not df.empty
+    }
+
+    detail_frameworks = []
+    if metric_key == "insertion_time":
+        if "losos" in available_frameworks:
+            detail_frameworks.append("losos")
+        if "wavemap" in available_frameworks:
+            detail_frameworks.append("wavemap")
+
+    has_detail_plots = len(detail_frameworks) > 0
+
+    # ------------------------------------------------------------
+    # Figure layout
+    # ------------------------------------------------------------
+    if has_detail_plots:
+        # Hlavní graf nahoře, detailní grafy dole
+        fig = plt.figure(figsize=(6.8, 6.0))
+
+        gs = fig.add_gridspec(
+            2,
+            2,
+            height_ratios=[3.45, 1.05],
+            hspace=0.22,
+            wspace=0.22,
+        )
+
+        ax = fig.add_subplot(gs[0, :])
+
+        detail_axes = {}
+
+        if len(detail_frameworks) == 1:
+            detail_axes[detail_frameworks[0]] = fig.add_subplot(gs[1, :])
+        else:
+            detail_axes[detail_frameworks[0]] = fig.add_subplot(gs[1, 0])
+            detail_axes[detail_frameworks[1]] = fig.add_subplot(gs[1, 1])
+    else:
+        fig, ax = plt.subplots(figsize=(6.8, 4.9))
+        detail_axes = {}
 
     plotted_series = {}
 
+    # ------------------------------------------------------------
+    # Main plot
+    # ------------------------------------------------------------
     for framework, df in sorted(framework_data.items()):
         if df.empty:
             continue
@@ -228,24 +326,17 @@ def plot_single_metric(
                     linewidth=0,
                 )
 
-    # ------------------------------------------------------------
     # 0,0 opravdu v levém dolním rohu
-    # ------------------------------------------------------------
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
     ax.margins(x=0, y=0)
 
-    # ------------------------------------------------------------
-    # Main plot labels
-    # ------------------------------------------------------------
     ax.set_title(metric["title"], fontsize=12)
     ax.set_xlabel("Time (s)", fontsize=11)
     ax.set_ylabel(metric["ylabel"], fontsize=11)
     ax.tick_params(axis="both", labelsize=10)
+    ax.grid(True, alpha=0.25)
 
-    # ------------------------------------------------------------
-    # Legenda
-    # ------------------------------------------------------------
     ax.legend(
         loc="upper left",
         fontsize=10,
@@ -253,64 +344,107 @@ def plot_single_metric(
     )
 
     # ------------------------------------------------------------
-    # Inset zoom only for insertion time and losos
+    # Detail plots under insertion time graph
     # ------------------------------------------------------------
-    if metric_key == "insertion_time" and "losos" in plotted_series:
-        losos = plotted_series["losos"]
-        losos_y = losos["y"]
+    def draw_detail_axis(detail_ax, target_framework: str, title: str, y_max: float):
+        if target_framework not in plotted_series:
+            return
 
-        if not losos_y.empty:
-            losos_max = losos_y.max()
+        series = plotted_series[target_framework]
 
-            # Offset nad maximem lososa.
-            y_offset = max(5.0, losos_max * 0.15)
-            inset_y_max = losos_max + y_offset
+        detail_ax.plot(
+            series["x"],
+            series["y"],
+            linewidth=1.3,
+            color=series["color"],
+        )
 
-            # Bounds jsou [left, bottom, width, height] v souřadnicích grafu.
-            # Etretat: vlevo pod legendou.
-            # Ostatní: vpravo dole, trochu nad spodkem.
-            if world_name.startswith("etretat_cliffs_beach"):
-                inset_bounds = [0.04, 0.52, 0.28, 0.28]
-            else:
-                inset_bounds = [0.7, 0.08, 0.28, 0.28]
+        if metric["shade"] and series["min_col"] and series["max_col"]:
+            df = series["df"]
+            min_col = series["min_col"]
+            max_col = series["max_col"]
+            scale = series["scale"]
 
-            axins = ax.inset_axes(inset_bounds)
-
-            # Do insetu vykreslíme všechny metody, ale osa Y je přiblížená
-            # podle lososa. Velké hodnoty ostatních metod budou oříznuté.
-            for framework, series in plotted_series.items():
-                axins.plot(
+            if min_col in df.columns and max_col in df.columns:
+                detail_ax.fill_between(
                     series["x"],
-                    series["y"],
-                    linewidth=1.1,
+                    df[min_col] * scale,
+                    df[max_col] * scale,
                     color=series["color"],
+                    alpha=0.14,
+                    linewidth=0,
                 )
 
-                if metric["shade"] and series["min_col"] and series["max_col"]:
-                    df = series["df"]
-                    min_col = series["min_col"]
-                    max_col = series["max_col"]
-                    scale = series["scale"]
+        detail_ax.set_xlim(left=0)
+        detail_ax.set_ylim(0, y_max)
+        detail_ax.margins(x=0)
 
-                    if min_col in df.columns and max_col in df.columns:
-                        axins.fill_between(
-                            series["x"],
-                            df[min_col] * scale,
-                            df[max_col] * scale,
-                            color=series["color"],
-                            alpha=0.12,
-                            linewidth=0,
-                        )
+        detail_ax.set_title(title, fontsize=9, pad=3)
+        detail_ax.set_xlabel("Time (s)", fontsize=9)
+        detail_ax.tick_params(axis="both", labelsize=8)
+        detail_ax.grid(True, alpha=0.25)
 
-            axins.set_xlim(left=0)
-            axins.set_ylim(0, inset_y_max)
-            axins.margins(x=0)
+    if metric_key == "insertion_time":
+        # Losos detail: klasicky podle maxima lososa + offset
+        if "losos" in plotted_series and "losos" in detail_axes:
+            losos_y = plotted_series["losos"]["y"].dropna()
+            losos_y = losos_y[losos_y >= 0]
 
-            axins.set_title("V/O mapper detail", fontsize=9, pad=4)
-            axins.tick_params(labelsize=9)
-            axins.tick_params(labelsize=8)
+            if not losos_y.empty:
+                losos_max = losos_y.max()
+                losos_offset = max(5.0, losos_max * 0.15)
+                losos_y_max = losos_max + losos_offset
 
-    fig.tight_layout()
+                draw_detail_axis(
+                    detail_axes["losos"],
+                    target_framework="losos",
+                    title="V/O mapper detail",
+                    y_max=losos_y_max,
+                )
+
+        # wavemap detail: pouze wavemap, y-limit podle hodnot po prvních N sekundách
+        if "wavemap" in plotted_series and "wavemap" in detail_axes:
+            wavemap_x = plotted_series["wavemap"]["x"]
+            wavemap_y = plotted_series["wavemap"]["y"]
+
+            # Ignorujeme počáteční spike při určování měřítka detail grafu.
+            # Spike pořád zůstane vidět v hlavním grafu.
+            wavemap_ignore_first_seconds = 20.0
+
+            stable_mask = wavemap_x >= wavemap_ignore_first_seconds
+            stable_y = wavemap_y[stable_mask].dropna()
+            stable_y = stable_y[stable_y >= 0]
+
+            if not stable_y.empty:
+                wavemap_max = stable_y.max()
+                wavemap_offset = max(5.0, wavemap_max * 0.10)
+                wavemap_y_max = wavemap_max + wavemap_offset
+            else:
+                # fallback, kdyby po 20 s nebyla žádná data
+                wavemap_y_clean = wavemap_y.dropna()
+                wavemap_y_clean = wavemap_y_clean[wavemap_y_clean >= 0]
+
+                if wavemap_y_clean.empty:
+                    wavemap_y_max = 1.0
+                else:
+                    wavemap_y_max = wavemap_y_clean.max() * 1.1
+
+            draw_detail_axis(
+                detail_axes["wavemap"],
+                target_framework="wavemap",
+                title="WaveMap detail",
+                y_max=wavemap_y_max,
+            )
+
+    if has_detail_plots:
+        fig.subplots_adjust(
+            left=0.10,
+            right=0.98,
+            top=0.94,
+            bottom=0.08,
+        )
+    else:
+        fig.tight_layout()
 
     safe_world = sanitize_filename(world_name)
     output_path = output_dir / f"{safe_world}_{metric_key}.png"
@@ -364,7 +498,11 @@ def main():
             continue
 
         try:
-            df = read_metrics_csv(csv_file, warmup_seconds=args.warmup_seconds)
+            df = read_metrics_csv(
+                csv_file,
+                framework=framework,
+                warmup_seconds=args.warmup_seconds,
+            )
         except Exception as e:
             print(f"Skipping {csv_file.name}: {e}")
             continue

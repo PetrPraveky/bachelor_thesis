@@ -6,29 +6,34 @@ Created environments from previous \refsec{sec:generated_worlds} were used to ge
 
 \begin{table*}[!h]
 	\centering
+	\small
 	\noindent
 	\begin{tabular}{c|c|c|c}
 		ID & File name & Duration & Description \\
 		\hline
-		0101 & desert\_oasis\_loop\_2026-05-05\_20-32-59\_0.mcap & 13 min 7 s & \\
-		0102 & desert\_oasis\_palms\_2026-05-05\_22-57-19\_0.mcap & 12 min 25 s & \\
-		0103 & desert\_oasis\_vonder\_2026-05-05\_22-15-50\_0.mcap & 12 min 16 s & \\
-		0201 & etretat\_cliffs\_beach\_2026-05-06\_23-01-09\_0.mcap & 12 min 29 s & \\
-		0202 & etretat\_cliffs\_cliff\_side\_2026-05-07\_00-26-46\_0.mcap & 13 min 33 s & \\
-		0203 & etretat\_cliffs\_road\_2026-05-06\_23-46-21\_0.mcap & 13 min 51 s & \\
-		0301 & grand\_canyon\_hills\_2026-05-08\_21-06-16\_0.mcap & 14 min 16 s & \\
-		0302 & grand\_canyon\_river\_2026-05-08\_20-09-50\_0.mcap & 11 min 54 s & \\
-		0401 & studlagil\_canyon\_hills\_2026-05-08\_22-46-09\_0.mcap & 12 min 35 s & \\
- 		0402 & studlagil\_canyon\_river\_2026-05-08\_23-33-52\_0.mcap & 13 min 26 s & \\
+		0101 & desert\_oasis\_loop\_2026-05-05\_20-32-59\_0.mcap & 13 min 7 s & \makecell{Flight around lake \\ in the oasis} \\
+		0102 & desert\_oasis\_palms\_2026-05-05\_22-57-19\_0.mcap & 12 min 25 s & \makecell{Flight through \\ palms at the oasis} \\
+		0103 & desert\_oasis\_vonder\_2026-05-05\_22-15-50\_0.mcap & 12 min 16 s & Flight in a desert \\
+		0201 & etretat\_cliffs\_beach\_2026-05-06\_23-01-09\_0.mcap & 12 min 29 s & \makecell{Flight above water \\ on a coast} \\ 
+		0202 & etretat\_cliffs\_cliff\_side\_2026-05-07\_00-26-46\_0.mcap & 13 min 33 s & \makecell{Flight near a \\ cliff side} \\ 
+		0203 & etretat\_cliffs\_road\_2026-05-06\_23-46-21\_0.mcap & 13 min 51 s & \makecell{Flight along a road} \\ 
+		0301 & grand\_canyon\_hills\_2026-05-08\_21-06-16\_0.mcap & 14 min 16 s & \makecell{Flight on hills \\ of the canyon} \\ 
+		0302 & grand\_canyon\_river\_2026-05-08\_20-09-50\_0.mcap & 11 min 54 s & \makecell{Flight along a river \\ inside the canyon} \\ 
+		0401 & studlagil\_canyon\_hills\_2026-05-08\_22-46-09\_0.mcap & 12 min 35 s & \makecell{Flight on hills \\ of the canyon} \\ 
+ 		0402 & studlagil\_canyon\_river\_2026-05-08\_23-33-52\_0.mcap & 13 min 26 s & \makecell{Flight along a river \\ inside the canyon} \\ 
 	\end{tabular}
 	\noindent
 	\caption{List of created datasets on generated worlds.}
 	\label{tab:generated_datasets}
 \end{table*}
 
+Point cloud density varies between individual datasets. During dataset creation, the simulated flights were controlled in a more realistic manner rather than following a fixed altitude or trajectory. For example, the drone was flown at higher altitudes above hilly terrain to avoid obstacles. Since the \ac{LiDAR} sensor has a limited range, this resulted in sparser point clouds. In contrast, flying close to river banks produced denser point clouds. As a result, the local point cloud density may differ from the density typically found in established training datasets.
+
 \section{Mapping Frameworks Verification}
 
-Four mapping frameworks that support \ac{ROS2} were chosen: OctoMap~\cite{bk_octomap}, WaveMap~\cite{bk_wavemap}, RayFronts~\cite{bk_rayfronts} and volumetric/occupancy-based mapper~\cite{bk_capek_masters}. The selected mapping frameworks differ in their primary purpose, but they partially overlap in the supported map representations. The overlap is mainly visible in semantic mapping, \ac{ESDF} based representations, and occupancy mapping. On \reftab{tab:supported_mapping_features} is shown which features are supported by which mapping frameworks.
+% Four
+Three mapping frameworks that support \ac{ROS2} were chosen: OctoMap~\cite{bk_octomap}, WaveMap~\cite{bk_wavemap}, % RayFronts~\cite{bk_rayfronts} 
+and volumetric/occupancy-based mapper~\cite{bk_capek_masters}. The selected mapping frameworks differ in their primary purpose, but they partially overlap in the supported map representations. The overlap is mainly visible in semantic mapping, \ac{ESDF} based representations, and occupancy mapping. On \reftab{tab:supported_mapping_features} is shown which features are supported by which mapping frameworks.
 
 \begin{table*}[!h]
 	\centering
@@ -39,7 +44,7 @@ Four mapping frameworks that support \ac{ROS2} were chosen: OctoMap~\cite{bk_oct
 		\makecell{Volumetric/ \\ occupancy-based mapper} & Yes & Yes & Yes \\
 		OctoMap & No & No & Yes \\
 		WaveMap & No & Yes & No \\
-		RayFronts & Yes & No & No
+		% RayFronts & Yes & No & No
 	\end{tabular}
 	\noindent
 	\caption{Table of mapping frameworks supported features.}
@@ -48,7 +53,7 @@ Four mapping frameworks that support \ac{ROS2} were chosen: OctoMap~\cite{bk_oct
 
 In general, mapping frameworks are often evaluated on datasets that do not perfectly correspond to real-world conditions. For this reason, the selected mapping frameworks were evaluated using the datasets created in this thesis to demonstrate their behavior when processing large outdoor environments. The observed metrics were point cloud insertion time, memory consumption, and CPU usage. These metrics are visualized over time in Figs.~\ref{fig:insertion_time}--\ref{fig:cpu_usage} using datasets with IDs 0102, 0201, 0302 and 0402.
 
-\begin{figure}[htbp]
+\begin{figure}[h]
 	\centering
 	\subfloat[Point cloud insertion time over the duration of dataset experiment 0102] {
 		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/desert_oasis_palms_2026-05-05_22-57-19_0_insertion_time.png}
@@ -72,15 +77,17 @@ In general, mapping frameworks are often evaluated on datasets that do not perfe
 		\label{fig:studlagil_canyon_insertion}
 	}
 	\caption{
-		Point cloud insertion time comparison between OctoMap (blue), ...
+		Point cloud insertion time comparison between Volumetric/occupancy-based mapper (blue), OctoMap (orange) and WaveMap (green)
 		over the duration of each dataset experiment with min-max shaded reagions.
 	}
 	\label{fig:insertion_time}
 \end{figure}
 
-\reffig{fig:insertion_time} displays the insertion time of the point cloud. ...
+\reffig{fig:insertion_time} shows the point cloud insertion time. WaveMap has a relatively high insertion time at the beginning of the dataset playback. After the initial phase, the insertion time stabilizes, with occasional spikes reaching approximately $\SI{40}{\milli\second}$. OctoMap has a high point cloud insertion time compared to the other evaluated frameworks. One possible explanation for the high insertion time of OctoMap is that the datasets were loaded from an HDD, which provides lower data transfer speeds compared to an SSD.
 
-\begin{figure}[htbp]
+The volumetric/occupancy-based mapper performs the most consistently among the evaluated frameworks, reaching approximately $400\times$ lower insertion times than OctoMap. This result is consistent with the expectation that the mapper should be faster than OctoMap, as reported in~\cite{bk_capek_masters}, where a speedup of $18.5\times$ was observed. The larger difference measured in this thesis may be caused by differences in dataset loading, storage transfer speeds, or the way OctoMap processes the input point clouds.
+
+\begin{figure}[h]
 	\centering
 	\subfloat[Memory consumption over the duration of dataset experiment 0102] {
 		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/desert_oasis_palms_2026-05-05_22-57-19_0_memory_usage.png}
@@ -104,15 +111,17 @@ In general, mapping frameworks are often evaluated on datasets that do not perfe
 		\label{fig:studlagil_canyon_memory}
 	}
 	\caption{
-		Memory consumption (RSS) comparison between OctoMap (blue), ...
+		Memory consumption (RSS) comparison between Volumetric/occupancy-based mapper (blue), OctoMap (orange) and WaveMap (green)
 		over the duration of each dataset experiment.
 	}
 	\label{fig:memory_usage}
 \end{figure}
 
-Memory consumption over time is shown on \reffig{fig:memory_usage}. ...
+Memory consumption over time is shown in \reffig{fig:memory_usage}. OctoMap shows a steady, approximately linear increase in memory consumption. The volumetric/occupancy-based mapper requires only a fraction of the memory used by OctoMap. This behavior is consistent with the explanation given in~\cite{bk_capek_masters}, where the lower memory consumption is attributed to the more efficient sparse voxel representation of the VDB data structure compared to the octree-based storage used by OctoMap~\cite[p.~64]{bk_capek_masters}. The same trend is also visible in our results.
 
-\begin{figure}[htbp]
+WaveMap steadily consumes approximately $\SI{45}{\mega\byte}$ of memory. One possible explanation for this low memory consumption is the different type of map representation used by WaveMap. Unlike the other evaluated frameworks, which perform occupancy mapping, WaveMap computes an \ac{ESDF}. However, since the exact memory behavior depends on the internal implementation and configuration of the framework, this explanation should be interpreted only as a possible cause.
+
+\begin{figure}[h]
 	\centering
 	\subfloat[CPU usage over the duration of dataset experiment 0102] {
 		\includegraphics[width=0.46\textwidth]{./fig/plots/mapping_frameworks_plots/plots/desert_oasis_palms_2026-05-05_22-57-19_0_cpu_usage.png}
@@ -136,10 +145,10 @@ Memory consumption over time is shown on \reffig{fig:memory_usage}. ...
 		\label{fig:studlagil_canyon_cpu}
 	}
 	\caption{
-		CPU usage comparison between OctoMap (blue), ...
+		CPU usage comparison between Volumetric/occupancy-based mapper (blue), OctoMap (orange) and WaveMap (green)
 		over the duration of each dataset experiment with min-max shaded reagions.
 	}
 	\label{fig:cpu_usage}
 \end{figure}
 
-\reffig{fig:cpu_usage} illustraces the CPU usage. ...
+\reffig{fig:cpu_usage} illustrates the CPU usage of the evaluated mapping frameworks. Across the four processed datasets, all frameworks exhibit similar overall CPU usage patterns. OctoMap shows the highest CPU usage, reaching approximately $250\%$, which corresponds to about $2.5$ CPU cores. WaveMap has the lowest CPU usage among the evaluated frameworks, remaining around $5\%$ on average and peaking at approximately $12\%$. The volumetric/occupancy-based mapper shows a gradual increase in CPU usage over time, staying around $50\%$ for most of the dataset playback and reaching peaks of approximately $100\%$.
